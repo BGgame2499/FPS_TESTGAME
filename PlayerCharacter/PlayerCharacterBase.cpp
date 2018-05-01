@@ -2,7 +2,10 @@
 #include "PlayerCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
-
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Weapon/WeaponFire.h"
+#include "Weapon/WeaponGun.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -11,11 +14,18 @@ APlayerCharacterBase::APlayerCharacterBase()
 	MinHP = 0;
 	HP = MaxHP;
 
-	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
-	PlayerMesh->SetupAttachment(GetRootComponent());
-
 	PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
-	PlayerMeshStatic->SetupAttachment(PlayerMesh);
+	PlayerMeshStatic->SetupAttachment(GetRootComponent());
+
+	CameraBoomComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoomComp"));
+	CameraBoomComp->SetupAttachment(GetRootComponent());
+	CameraBoomComp->SocketOffset = FVector(0, 35, 0);
+	CameraBoomComp->TargetOffset = FVector(0, 0, 55);
+	CameraBoomComp->bUsePawnControlRotation = true;	//ÔÊÐí¸úËæ½ÇÉ«Ðý×ª
+
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
+	CameraComp->SetupAttachment(CameraBoomComp);
+
 }
 
 void APlayerCharacterBase::BeginPlay()
