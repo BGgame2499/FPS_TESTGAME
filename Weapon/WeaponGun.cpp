@@ -1,10 +1,10 @@
 
 #include "WeaponGun.h"
-
+#include "Components/SkeletalMeshComponent.h"
 
 AWeaponGun::AWeaponGun()
 {
-
+	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
 }
 
 void AWeaponGun::BeginPlay()

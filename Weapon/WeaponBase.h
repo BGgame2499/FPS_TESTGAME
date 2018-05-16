@@ -13,6 +13,9 @@ class FPS_TESTGAME_API AWeaponBase : public AActor
 public:	
 	AWeaponBase();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UStaticMeshComponent * WeaponBaseMesh;
+
 protected:
 	virtual void BeginPlay() override;
 

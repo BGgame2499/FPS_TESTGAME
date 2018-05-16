@@ -34,6 +34,10 @@ public:
 	int32 MinHP; 
 
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
+		TSubclassOf<class AWeaponGun > DefaultWeaponClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		class AWeaponGun * Gun_A;
 

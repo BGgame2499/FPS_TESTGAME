@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Weapon/WeaponFire.h"
 #include "Weapon/WeaponGun.h"
+#include "Engine.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -31,7 +32,10 @@ APlayerCharacterBase::APlayerCharacterBase()
 void APlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
 	
+
 }
 void APlayerCharacterBase::Tick(float DeltaTime)
 {

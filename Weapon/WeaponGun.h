@@ -16,6 +16,8 @@ class FPS_TESTGAME_API AWeaponGun : public AWeaponBase
 public:
 	AWeaponGun();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class USkeletalMeshComponent * WeaponSkletalMesh;
 
 protected:
 	virtual void BeginPlay() override;
