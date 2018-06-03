@@ -3,10 +3,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/AttackInterface/I_Fire.h"
 #include "WeaponBase.generated.h"
 
 UCLASS()
-class FPS_TESTGAME_API AWeaponBase : public AActor
+class FPS_TESTGAME_API AWeaponBase : public AActor , public II_Fire
 {
 	GENERATED_BODY()
 	
@@ -22,6 +23,6 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	
-	
+	 virtual bool Fire_Int_Implementation(bool isFire,float Time);
+
 };

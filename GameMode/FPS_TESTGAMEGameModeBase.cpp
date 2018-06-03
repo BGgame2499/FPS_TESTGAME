@@ -2,6 +2,10 @@
 
 #include "FPS_TESTGAMEGameModeBase.h"
 
+AFPS_TESTGAMEGameModeBase::AFPS_TESTGAMEGameModeBase()
+{
 
+
+}
 
 

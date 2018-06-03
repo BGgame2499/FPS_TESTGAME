@@ -13,8 +13,8 @@ UCLASS()
 class FPS_TESTGAME_API AFPS_TESTGAMEGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	
+
+		AFPS_TESTGAMEGameModeBase();
 	
 	
 };

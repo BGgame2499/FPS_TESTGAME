@@ -37,6 +37,8 @@ void APlayerCharacterBase::BeginPlay()
 	Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
 	
 	Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), "Finger_04_R");
+
+	//Gun_A->Execute_Fire_Int(Gun_A,true,0.1f);  测试接口调用
 }
 void APlayerCharacterBase::Tick(float DeltaTime)
 {
