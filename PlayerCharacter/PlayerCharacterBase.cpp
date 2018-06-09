@@ -34,10 +34,13 @@ void APlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
-	
-	Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), "Finger_04_R");
+	if (DefaultWeaponClass)
+	{
+		Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
 
+		Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
+	}
+	
 	//Gun_A->Execute_Fire_Int(Gun_A,true,0.1f);  测试接口调用
 }
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -81,6 +84,24 @@ void APlayerCharacterBase::ExamineHP()
 	{
 		HP = MinHP;
 		IsDie = true;
+	}
+}
+
+void APlayerCharacterBase::AttackOn()
+{
+	if (Gun_A)
+	{
+		Gun_A->Execute_Fire_Int(Gun_A, 0.0f, true);
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "AttackOn", true);
+	}
+}
+
+void APlayerCharacterBase::AttackOff()
+{
+	if (Gun_A)
+	{
+		Gun_A->Execute_Fire_Int(Gun_A, 0.0f, false);
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "AttackOff", true);
 	}
 }
 

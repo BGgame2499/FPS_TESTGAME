@@ -6,7 +6,6 @@
 AWeaponBase::AWeaponBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	WeaponBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponBaseMesh"));
 }
 
 void AWeaponBase::BeginPlay()
@@ -24,7 +23,7 @@ void AWeaponBase::Tick(float DeltaTime)
 bool AWeaponBase::Fire_Int_Implementation(bool isFire, float Time)
 {
 	
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, "Fire_Int",true);
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, "WeponeFire_Int",true);
 	return false;
 }
 

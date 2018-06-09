@@ -47,6 +47,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		class AWeaponFire * FireWeapon_A;
 		
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
+		FName Wepone_IK_name_A;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
+		FName Wepone_IK_name_B;
 private:
 	int32 HP;
 protected:
@@ -63,5 +69,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void ExamineHP();
+
+
+	UFUNCTION(BlueprintCallable)
+	void AttackOn();
+	UFUNCTION(BlueprintCallable)
+	void AttackOff();
 	
 };
