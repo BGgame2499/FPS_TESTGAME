@@ -19,12 +19,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USkeletalMeshComponent * WeaponSkletalMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "WeponeBasicValue")
+	FName CurrentMuzzleName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+	FVector CurrentMuzzleLocation;
+
 protected:
 	virtual void BeginPlay() override;
 
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	
+	virtual bool OnAttack()override;
+	virtual bool OffAttack()override;
 	
 };

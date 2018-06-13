@@ -7,7 +7,7 @@
 
 APlayerControllerBase::APlayerControllerBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 	isIgnoreInput = false;
 	/*PlayerInputComp = CreateDefaultSubobject<UInputComponent>(TEXT("PlayerInputComp"));
 	PlayerInputComp->BindAction("Fire", IE_Pressed, this, &APlayerControllerBase::AttackOnEvent);

@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/TimelineComponent.h"
 #include "PlayerCharacterBase.generated.h"
 
 UCLASS()
@@ -33,7 +34,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	int32 MinHP; 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		int32 SprintSpeedMax;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		int32 SprintSpeedMin;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		int32 WalkSpeedMin;
 
+	///////////////////////////////////////////////////////////////////////////////////
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		TSubclassOf<class AWeaponGun > DefaultWeaponClass;
@@ -48,11 +56,28 @@ public:
 		class AWeaponFire * FireWeapon_A;
 		
 
+	///////////////////////////////////////////////////////////////////////////////////
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
 		FName Wepone_IK_name_A;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
 		FName Wepone_IK_name_B;
+
+	///////////////////////////////////////////////////////////////////////////////////
+
+	UPROPERTY(VisibleAnywhere, Category = "PUBG", Meta = (AllowPrivateAccess = "true"))
+		class UCurveFloat * TurnBackCurve;
+
+	 FTimeline TurnBackTimeLine;		//用于绑定TimeLine每次更新时调用的函数
+
+	UFUNCTION()
+		void UpdateControllerRotation(float Value);
+
+	FRotator TargetControlRotation;
+	FRotator CurrentContrtolRotation;
+
+
 private:
 	int32 HP;
 protected:
@@ -75,5 +100,18 @@ public:
 	void AttackOn();
 	UFUNCTION(BlueprintCallable)
 	void AttackOff();
+
+	UFUNCTION(BlueprintCallable)
+		void SprintPressed();
+	UFUNCTION(BlueprintCallable)
+		void SprintReleased();
+	UFUNCTION(BlueprintCallable)
+		void FreelookPressed();
+	UFUNCTION(BlueprintCallable)
+		void FreelookReleased();
+	UFUNCTION(BlueprintCallable)
+		void WalkPressed();
+	UFUNCTION(BlueprintCallable)
+		void WalkReleased();
 	
 };

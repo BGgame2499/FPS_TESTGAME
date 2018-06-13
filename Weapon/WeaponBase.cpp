@@ -5,7 +5,14 @@
 
 AWeaponBase::AWeaponBase()
 {
+	AttackHP_Value = 25.f;
+	AttackTimeInterval = 1.5f;
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+float AWeaponBase::GetAttackHP() const
+{
+	return AttackHP_Value;
 }
 
 void AWeaponBase::BeginPlay()
@@ -22,8 +29,25 @@ void AWeaponBase::Tick(float DeltaTime)
 
 bool AWeaponBase::Fire_Int_Implementation(bool isFire, float Time)
 {
-	
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, "WeponeFire_Int",true);
+
+	if (isFire)
+	{
+		OnAttack();
+	}
+	else 
+	{
+		OffAttack();
+	}
+	return false;
+}
+
+bool AWeaponBase::OnAttack()
+{
+	return false;
+}
+
+bool AWeaponBase::OffAttack()
+{
 	return false;
 }
 

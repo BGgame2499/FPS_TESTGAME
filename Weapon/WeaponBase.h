@@ -14,12 +14,27 @@ class FPS_TESTGAME_API AWeaponBase : public AActor , public II_Fire
 public:	
 	AWeaponBase();
 
+	UFUNCTION(BlueprintCallable)
+		float GetAttackHP()const;
+
 protected:
 	virtual void BeginPlay() override;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		float AttackHP_Value;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		float AttackTimeInterval;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	 virtual bool Fire_Int_Implementation(bool isFire,float Time);
+	virtual bool Fire_Int_Implementation(bool isFire,float Time);
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool OnAttack();
+	UFUNCTION(BlueprintCallable)
+	virtual bool OffAttack();
 
 };
