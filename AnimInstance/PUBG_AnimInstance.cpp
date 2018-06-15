@@ -1,9 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PUBG_AnimInstance.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
+	Super::NativeUpdateAnimation(DeltaSeconds);
 	APawn * Pawn = TryGetPawnOwner();
 	if (Pawn)
 	{
@@ -19,6 +21,12 @@ void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		FRotator DeltaRotation = ControlRotation - ActorRotation;
 		Yaw = FRotator::NormalizeAxis(DeltaRotation.Yaw);
 		Pitch = FRotator::NormalizeAxis(DeltaRotation.Pitch);
+
+		//¼ì²âÌøÔ¾
+		IsJump = Pawn->GetMovementComponent()->IsFalling();
+
+		//¼ì²âÏÂ¶×
+		IsCrouch = Pawn->GetMovementComponent()->IsCrouching();
 
 	}
 

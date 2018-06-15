@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Components/TimelineComponent.h"
+#include "Enum/PlayerStateEnum.h"
 #include "PlayerCharacterBase.generated.h"
 
 UCLASS()
@@ -24,7 +25,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UCameraComponent * CameraComp;
 	
+	class UCharacterMovementComponent * MovementComp;
+
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		PlayerStateEnum  CurrentStateEnum;
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "PlayerState")
 	bool IsDie;
 
@@ -35,11 +42,13 @@ public:
 	int32 MinHP; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-		int32 SprintSpeedMax;
+		int32 SprintSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-		int32 SprintSpeedMin;
+		int32 RunSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-		int32 WalkSpeedMin;
+		int32 WalkSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		int32 CrouchSpeed;
 
 	///////////////////////////////////////////////////////////////////////////////////
 
@@ -78,6 +87,17 @@ public:
 	FRotator CurrentContrtolRotation;
 
 
+	UPROPERTY(VisibleAnywhere, Category = "PUBG", Meta = (AllowPrivateAccess = "true"))
+		class UCurveFloat * AimSpringCurve;
+
+	FTimeline AimSpringTimeLine;
+
+	UFUNCTION()
+		void UpdateSpringLength(float Value);
+
+	float CurrentSpringLength;
+	float AimSpringLength;
+
 private:
 	int32 HP;
 protected:
@@ -113,5 +133,13 @@ public:
 		void WalkPressed();
 	UFUNCTION(BlueprintCallable)
 		void WalkReleased();
+	UFUNCTION(BlueprintCallable)
+		void CrouchPressed();
+	UFUNCTION(BlueprintCallable)
+		void CrouchReleased();
+	UFUNCTION(BlueprintCallable)
+		void AimPressed();
+	UFUNCTION(BlueprintCallable)
+		void AimReleased();
 	
 };

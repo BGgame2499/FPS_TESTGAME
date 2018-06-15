@@ -16,10 +16,16 @@ APlayerCharacterBase::APlayerCharacterBase()
 	MaxHP = 100;
 	MinHP = 0;
 	HP = MaxHP;
+	CurrentStateEnum = PlayerStateEnum::Idle;
+	MovementComp = GetCharacterMovement();
 
-	SprintSpeedMax = 600;
-	SprintSpeedMin = 450;
-	WalkSpeedMin = 190;
+	SprintSpeed = 600;
+	RunSpeed = 450;
+	WalkSpeed = 190;
+	CrouchSpeed = 190;
+
+	CurrentSpringLength = 300.0f;
+	AimSpringLength = 150.0f;
 
 	PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
 	PlayerMeshStatic->SetupAttachment(GetRootComponent());
@@ -36,12 +42,9 @@ APlayerCharacterBase::APlayerCharacterBase()
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> FindTurnBackCurve(TEXT("/Game/PUBG_Assent/Animation/TurnBackCurve")); //加载TurnBackCurve
 		TurnBackCurve = FindTurnBackCurve.Object;
-}
 
-void APlayerCharacterBase::UpdateControllerRotation(float Value)
-{
-	FRotator NewRotation = FMath::Lerp(CurrentContrtolRotation, TargetControlRotation, Value);
-	Controller->SetControlRotation(NewRotation);
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> FindAimSpringCurve(TEXT("/Game/PUBG_Assent/Animation/AimSpringCurve")); //加载AimSpringCurve
+		AimSpringCurve = FindAimSpringCurve.Object;
 
 }
 
@@ -64,10 +67,21 @@ void APlayerCharacterBase::BeginPlay()
 		FOnTimelineEventStatic TurnBackTimelineFinishedCallback;	//绑定TimeLine播放完后调用的函数
 
 		TurnBackTimelineCallBack.BindUFunction(this, TEXT("UpdateControllerRotation"));//第一个调用函数对象 第二个为调用函数名
-		TurnBackTimelineFinishedCallback.BindLambda([this]() {bUseControllerRotationYaw = true; });	//结束后执行Lambda表达式 将bUseControllerRotationYaw恢复为true
+		TurnBackTimelineFinishedCallback.BindLambda([this]() {bUseControllerRotationYaw = false; });	//结束后执行Lambda表达式 将bUseControllerRotationYaw恢复为true
 
 		TurnBackTimeLine.AddInterpFloat(TurnBackCurve, TurnBackTimelineCallBack);	
 		TurnBackTimeLine.SetTimelineFinishedFunc(TurnBackTimelineFinishedCallback);	//设置TimeLine播放完后调用TurnBackTimelineFinishedCallback
+
+	}
+
+	if (AimSpringCurve)
+	{
+		FOnTimelineFloat AimSpringTimelineCallBack;
+
+		AimSpringTimelineCallBack.BindUFunction(this, TEXT("UpdateSpringLength"));
+
+		AimSpringTimeLine.AddInterpFloat(AimSpringCurve, AimSpringTimelineCallBack);
+
 	}
 
 }
@@ -77,7 +91,9 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 
 	ExamineHP();
 
-	TurnBackTimeLine.TickTimeline(DeltaTime);
+	TurnBackTimeLine.TickTimeline(DeltaTime); //tick中绑定TimeLine
+	AimSpringTimeLine.TickTimeline(DeltaTime);
+
 }
 void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -93,8 +109,15 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 
 	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &APlayerCharacterBase::WalkPressed);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &APlayerCharacterBase::WalkReleased);
+
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &APlayerCharacterBase::CrouchPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &APlayerCharacterBase::CrouchReleased);
+
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacterBase::AimPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacterBase::AimReleased);
 }
 
+//////////////////////////////////////////////////////////////////////////血量
 int32 APlayerCharacterBase::GetHP()
 {
 	return HP;
@@ -124,7 +147,23 @@ void APlayerCharacterBase::ExamineHP()
 		IsDie = true;
 	}
 }
+//////////////////////////////////////////////////////////////////////////TimeLine调用函数
+void APlayerCharacterBase::UpdateControllerRotation(float Value)
+{
+	FRotator NewRotation = FMath::Lerp(CurrentContrtolRotation, TargetControlRotation, Value);
+	Controller->SetControlRotation(NewRotation);
 
+
+}
+
+void APlayerCharacterBase::UpdateSpringLength(float Value)
+{
+
+	float NewArmLength = FMath::Lerp(CurrentSpringLength, AimSpringLength, Value);
+
+	CameraBoomComp->TargetArmLength = NewArmLength;
+
+}
 //////////////////////////////////////////////////////////////////////////开火控制
 void APlayerCharacterBase::AttackOn()
 {
@@ -145,24 +184,36 @@ void APlayerCharacterBase::AttackOff()
 //////////////////////////////////////////////////////////////////////////行走控制
 void APlayerCharacterBase::SprintPressed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeedMax;
+	MovementComp->MaxWalkSpeed = SprintSpeed;
 }
 
 void APlayerCharacterBase::SprintReleased()
 {
-
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeedMin; 
+	MovementComp->MaxWalkSpeed = RunSpeed;
 }
 
 void APlayerCharacterBase::WalkPressed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeedMin;
+	MovementComp->MaxWalkSpeed = WalkSpeed;
 }
 
 void APlayerCharacterBase::WalkReleased()
 {
 
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeedMin; 
+	MovementComp->MaxWalkSpeed = RunSpeed;
+
+}
+void APlayerCharacterBase::CrouchPressed()
+{
+
+	Crouch(true);
+	MovementComp->MaxWalkSpeed = CrouchSpeed;
+}
+void APlayerCharacterBase::CrouchReleased()
+{
+
+	UnCrouch();
+	MovementComp->MaxWalkSpeed = RunSpeed;
 
 }
 //////////////////////////////////////////////////////////////////////////视角控制
@@ -178,4 +229,22 @@ void APlayerCharacterBase::FreelookReleased()
 	TurnBackTimeLine.PlayFromStart();	//播放TimeLine
 
 }
+void APlayerCharacterBase::AimPressed()
+{
+
+	bUseControllerRotationYaw = true;
+	AimSpringTimeLine.PlayFromStart();
+	CurrentStateEnum = PlayerStateEnum::Aim;
+}
+
+void APlayerCharacterBase::AimReleased()
+{
+
+	bUseControllerRotationYaw = false;
+	AimSpringTimeLine.ReverseFromEnd();	//倒叙播放AimSpringTimeLine
+
+	CurrentStateEnum = PlayerStateEnum::Idle;
+}
+
+
 

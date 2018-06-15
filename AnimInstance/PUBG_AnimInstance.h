@@ -30,6 +30,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
 		float Yaw;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
+		bool IsJump;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
+		bool IsCrouch;
 	
 };
