@@ -7,17 +7,25 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Weapon/WeaponFire.h"
 #include "Weapon/WeaponGun.h"
+#include "Weapon/WeaponBase.h"
 #include "Components/InputComponent.h"
 #include "Engine.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	IsDie = false;
+	IsAim = false;
 	MaxHP = 100;
 	MinHP = 0;
 	HP = MaxHP;
-	CurrentStateEnum = PlayerStateEnum::Idle;
+	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
+	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;	//武器动画枚举
+	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
 	MovementComp = GetCharacterMovement();
+
+	Wepone_IK_name_A = "Weapon_A";	//默认名称
+	Wepone_IK_name_B = "Weapon_B"; 
+	Wepone_Hand_name = "HandGun_R";
 
 	SprintSpeed = 600;
 	RunSpeed = 450;
@@ -57,6 +65,10 @@ void APlayerCharacterBase::BeginPlay()
 		Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
 
 		Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
+
+		Gun_B = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
+
+		Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
 	}
 	
 	//Gun_A->Execute_Fire_Int(Gun_A,true,0.1f);  测试接口调用
@@ -115,6 +127,11 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacterBase::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacterBase::AimReleased);
+
+
+	PlayerInputComponent->BindAction("Weapon_1", IE_Pressed, this, &APlayerCharacterBase::Weapon_1Pressed);
+	PlayerInputComponent->BindAction("Weapon_2", IE_Pressed, this, &APlayerCharacterBase::Weapon_2Pressed);
+	PlayerInputComponent->BindAction("Hand", IE_Pressed, this, &APlayerCharacterBase::HandPressed);
 }
 
 //////////////////////////////////////////////////////////////////////////血量
@@ -167,29 +184,51 @@ void APlayerCharacterBase::UpdateSpringLength(float Value)
 //////////////////////////////////////////////////////////////////////////开火控制
 void APlayerCharacterBase::AttackOn()
 {
-	if (Gun_A)
+	if (CurrentHandWeapon)
 	{
-		Gun_A->Execute_Fire_Int(Gun_A, true, 0.0f);
+		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, true, 0.0f);
 	}
+	
+	bUseControllerRotationYaw = true;
+	
 }
 
 void APlayerCharacterBase::AttackOff()
 {
-	if (Gun_A)
+	if (CurrentHandWeapon)
 	{
-		Gun_A->Execute_Fire_Int(Gun_A, false, 0.0f);
+		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
+	}
+
+	if (!IsAim)
+	{
+		bUseControllerRotationYaw = false;
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////行走控制
 void APlayerCharacterBase::SprintPressed()
 {
-	MovementComp->MaxWalkSpeed = SprintSpeed;
+	if (!IsAim)	
+	{
+		MovementComp->MaxWalkSpeed = SprintSpeed;
+	}
+	else   
+	{
+		MovementComp->MaxWalkSpeed = RunSpeed;   //瞄准状态下限制最大速度
+	}
 }
 
 void APlayerCharacterBase::SprintReleased()
 {
-	MovementComp->MaxWalkSpeed = RunSpeed;
+	if (!IsAim)
+	{
+		MovementComp->MaxWalkSpeed = RunSpeed;
+	}
+	else
+	{
+		MovementComp->MaxWalkSpeed = WalkSpeed;
+	}
 }
 
 void APlayerCharacterBase::WalkPressed()
@@ -234,7 +273,12 @@ void APlayerCharacterBase::AimPressed()
 
 	bUseControllerRotationYaw = true;
 	AimSpringTimeLine.PlayFromStart();
-	CurrentStateEnum = PlayerStateEnum::Aim;
+	IsAim = true;
+
+	if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)		//如果现在的武器不是拳头则限制走路速度
+	{
+		MovementComp->MaxWalkSpeed = WalkSpeed;
+	}
 }
 
 void APlayerCharacterBase::AimReleased()
@@ -243,8 +287,91 @@ void APlayerCharacterBase::AimReleased()
 	bUseControllerRotationYaw = false;
 	AimSpringTimeLine.ReverseFromEnd();	//倒叙播放AimSpringTimeLine
 
-	CurrentStateEnum = PlayerStateEnum::Idle;
+	IsAim = false;
+	
+	MovementComp->MaxWalkSpeed = RunSpeed;
+	
+}
+
+//////////////////////////////////////////////////////////////////////////武器控制
+void APlayerCharacterBase::Weapon_1Pressed()
+{
+	if (Gun_A && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
+	{
+		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_1;
+	}
+}
+void APlayerCharacterBase::Weapon_2Pressed()
+{
+	if (Gun_B && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
+	{
+		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_2;
+	}
+}
+
+void APlayerCharacterBase::HandPressed()
+{
+	if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
+	{
+		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Down_Gun;
+		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;
+	}
 }
 
 
+void APlayerCharacterBase::UpdateWeapon()
+{
+	switch (CurrentHandWeaponState)
+	{
+	case CurrentHandWeaponStateEnum::Weapon_1:
+		if (Gun_A)
+		{
+			if (CurrentHandWeapon)
+			{
+				Gun_B = Cast<AWeaponGun>(CurrentHandWeapon);
+				Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
+				CurrentHandWeapon = nullptr;
+			}
+			CurrentHandWeapon = Gun_A;
+			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
+			Gun_A = nullptr;
+		}
+		break;
+	case CurrentHandWeaponStateEnum::Weapon_2:
+		if (Gun_B)
+		{
+			if (CurrentHandWeapon)
+			{
+				Gun_A = Cast<AWeaponGun>(CurrentHandWeapon);
+				Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
+				CurrentHandWeapon = nullptr;
+			}
+			CurrentHandWeapon = Gun_B;
+			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
+			Gun_B = nullptr;
+		}
+		break;
+	case CurrentHandWeaponStateEnum::Hand:
+		if (Gun_A == nullptr)
+		{
+			Gun_A = Cast<AWeaponGun>(CurrentHandWeapon);
+			Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
+			CurrentHandWeapon = nullptr;
+			break;
+		}
+		if (Gun_B == nullptr)
+		{
+			Gun_B = Cast<AWeaponGun>(CurrentHandWeapon);
+			Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
+			CurrentHandWeapon = nullptr;
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;
+}
 

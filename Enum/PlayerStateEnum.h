@@ -21,3 +21,13 @@ enum class PlayerStateEnum : uint8
 	Crouch_Aim
 	
 };
+
+
+UENUM(Blueprintable, BlueprintType)
+enum class PlayerWeaponStateEnum : uint8
+{
+	Take_Gun,
+	Down_Gun,
+	GunComplete
+
+};

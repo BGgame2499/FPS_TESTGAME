@@ -18,6 +18,9 @@ public:
 	void NativeUpdateAnimation(float DeltaSeconds)override;
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterBase")
+		class APlayerCharacterBase * CurrentPlayerPawn;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
 		float Speed;
@@ -36,5 +39,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
 		bool IsCrouch;
-	
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void AnimNotify_TakeWeaponGun(UAnimNotify * Notify);
+
+	UFUNCTION(BlueprintCallable)
+	void AnimNotify_DownWeaponGun(UAnimNotify * Notify);
 };

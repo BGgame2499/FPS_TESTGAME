@@ -7,6 +7,17 @@
 #include "Enum/PlayerStateEnum.h"
 #include "PlayerCharacterBase.generated.h"
 
+UENUM(Blueprintable, BlueprintType)
+enum class CurrentHandWeaponStateEnum : uint8
+{
+	Weapon_1,
+	Weapon_2,
+	Hand
+
+
+};
+
+
 UCLASS()
 class FPS_TESTGAME_API APlayerCharacterBase : public ACharacter
 {
@@ -29,11 +40,14 @@ public:
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-		PlayerStateEnum  CurrentStateEnum;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		//PlayerStateEnum  CurrentStateEnum;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "PlayerState")
-	bool IsDie;
+		bool IsDie;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		bool IsAim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	int32 MaxHP;
@@ -56,6 +70,9 @@ public:
 		TSubclassOf<class AWeaponGun > DefaultWeaponClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
+		class AWeaponBase * CurrentHandWeapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		class AWeaponGun * Gun_A;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
@@ -63,7 +80,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		class AWeaponFire * FireWeapon_A;
-		
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		PlayerWeaponStateEnum CurrentWeaponAnimStateEnum;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+		CurrentHandWeaponStateEnum CurrentHandWeaponState;
+
+	UFUNCTION(BlueprintCallable)
+		void UpdateWeapon();
 
 	///////////////////////////////////////////////////////////////////////////////////
 
@@ -72,6 +97,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
 		FName Wepone_IK_name_B;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
+		FName Wepone_Hand_name;
+
 
 	///////////////////////////////////////////////////////////////////////////////////
 
@@ -141,5 +170,12 @@ public:
 		void AimPressed();
 	UFUNCTION(BlueprintCallable)
 		void AimReleased();
+
+	UFUNCTION(BlueprintCallable)
+		void Weapon_1Pressed();
+	UFUNCTION(BlueprintCallable)
+		void Weapon_2Pressed();
+	UFUNCTION(BlueprintCallable)
+		void HandPressed();
 	
 };
