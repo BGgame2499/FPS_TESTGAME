@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Components/TimelineComponent.h"
 #include "Enum/PlayerStateEnum.h"
+#include "Struct/BasicStruct.h"
 #include "PlayerCharacterBase.generated.h"
 
 UENUM(Blueprintable, BlueprintType)
@@ -16,7 +17,6 @@ enum class CurrentHandWeaponStateEnum : uint8
 
 
 };
-
 
 UCLASS()
 class FPS_TESTGAME_API APlayerCharacterBase : public ACharacter
@@ -72,15 +72,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		class AWeaponBase * CurrentHandWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
-		class AWeaponGun * Gun_A;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
-		class AWeaponGun * Gun_B;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
-		class AWeaponFire * FireWeapon_A;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 		PlayerWeaponStateEnum CurrentWeaponAnimStateEnum;
 
@@ -88,15 +79,26 @@ public:
 		CurrentHandWeaponStateEnum CurrentHandWeaponState;
 
 	UFUNCTION(BlueprintCallable)
-		void UpdateWeapon();
+		virtual void UpdateWeapon();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
+		int32 GunTrenchNum;	//要生成的插槽数量
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TrenchArray")
+		TArray<FTrench> GunTrenchArray;	//插槽数组
+
+	UFUNCTION(BlueprintCallable)
+		virtual bool AddGunWeapon(class AWeaponBase * Gun);
+
+	UFUNCTION(BlueprintCallable)
+		virtual AWeaponBase * GetGunWeapon(FName TrenchName);
 
 	///////////////////////////////////////////////////////////////////////////////////
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
-		FName Wepone_IK_name_A;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
-		FName Wepone_IK_name_B;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "IK_Name_Array")
+		TArray<FName> IK_Name_Array;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
 		FName Wepone_Hand_name;
@@ -126,6 +128,7 @@ public:
 
 	float CurrentSpringLength;
 	float AimSpringLength;
+
 
 private:
 	int32 HP;

@@ -13,6 +13,11 @@
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	GunTrenchNum = 2;	//默认生成3个武器槽位
+	GunTrenchArray.SetNum(GunTrenchNum);
+	IK_Name_Array.SetNum(GunTrenchNum);
+	IK_Name_Array[0] = "Weapon_A";
+	IK_Name_Array[1] = "Weapon_B";
 	IsDie = false;
 	IsAim = false;
 	MaxHP = 100;
@@ -23,8 +28,6 @@ APlayerCharacterBase::APlayerCharacterBase()
 	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
 	MovementComp = GetCharacterMovement();
 
-	Wepone_IK_name_A = "Weapon_A";	//默认名称
-	Wepone_IK_name_B = "Weapon_B"; 
 	Wepone_Hand_name = "HandGun_R";
 
 	SprintSpeed = 600;
@@ -34,6 +37,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 
 	CurrentSpringLength = 300.0f;
 	AimSpringLength = 150.0f;
+
 
 	PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
 	PlayerMeshStatic->SetupAttachment(GetRootComponent());
@@ -59,19 +63,20 @@ APlayerCharacterBase::APlayerCharacterBase()
 void APlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (DefaultWeaponClass)
+	for (int32 index = 0; index < GunTrenchNum; index++)	//初始化插槽数组名
 	{
-		Gun_A = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
+		if (index > IK_Name_Array.Num()){break;}
 
-		Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
-
-		Gun_B = GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0));
-
-		Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
+		GunTrenchArray[index].TrenchName = IK_Name_Array[index];
+		
 	}
-	
-	//Gun_A->Execute_Fire_Int(Gun_A,true,0.1f);  测试接口调用
+
+	if (DefaultWeaponClass)	//创建两把武器
+	{
+		AddGunWeapon(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
+
+		AddGunWeapon(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
+	}
 
 	if (TurnBackCurve)
 	{
@@ -296,7 +301,7 @@ void APlayerCharacterBase::AimReleased()
 //////////////////////////////////////////////////////////////////////////武器控制
 void APlayerCharacterBase::Weapon_1Pressed()
 {
-	if (Gun_A && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
+	if (GunTrenchArray[0].IsWeapon() &&CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
 	{
 		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
 		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_1;
@@ -304,7 +309,7 @@ void APlayerCharacterBase::Weapon_1Pressed()
 }
 void APlayerCharacterBase::Weapon_2Pressed()
 {
-	if (Gun_B && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
+	if (GunTrenchArray[1].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
 	{
 		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
 		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_2;
@@ -326,52 +331,55 @@ void APlayerCharacterBase::UpdateWeapon()
 	switch (CurrentHandWeaponState)
 	{
 	case CurrentHandWeaponStateEnum::Weapon_1:
-		if (Gun_A)
-		{
-			if (CurrentHandWeapon)
-			{
-				Gun_B = Cast<AWeaponGun>(CurrentHandWeapon);
-				Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
-				CurrentHandWeapon = nullptr;
-			}
-			CurrentHandWeapon = Gun_A;
-			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
-			Gun_A = nullptr;
-		}
+		GetGunWeapon(IK_Name_Array[0]);
 		break;
 	case CurrentHandWeaponStateEnum::Weapon_2:
-		if (Gun_B)
-		{
-			if (CurrentHandWeapon)
-			{
-				Gun_A = Cast<AWeaponGun>(CurrentHandWeapon);
-				Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
-				CurrentHandWeapon = nullptr;
-			}
-			CurrentHandWeapon = Gun_B;
-			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
-			Gun_B = nullptr;
-		}
+
+		GetGunWeapon(IK_Name_Array[1]);
 		break;
 	case CurrentHandWeaponStateEnum::Hand:
-		if (Gun_A == nullptr)
+		if (CurrentHandWeapon)
 		{
-			Gun_A = Cast<AWeaponGun>(CurrentHandWeapon);
-			Gun_A->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_A);
+			AddGunWeapon(CurrentHandWeapon);
 			CurrentHandWeapon = nullptr;
-			break;
-		}
-		if (Gun_B == nullptr)
-		{
-			Gun_B = Cast<AWeaponGun>(CurrentHandWeapon);
-			Gun_B->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_IK_name_B);
-			CurrentHandWeapon = nullptr;
-			break;
 		}
 		break;
 	default:
 		break;
 	}
 	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;
+}
+
+bool APlayerCharacterBase::AddGunWeapon(AWeaponBase * Gun)
+{
+	
+	for (int32 index = 0; index < GunTrenchArray.Num(); index++)
+	{
+		if (!GunTrenchArray[index].IsWeapon())
+		{
+			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
+			return true;
+		}
+	}
+	return false;
+}
+
+AWeaponBase * APlayerCharacterBase::GetGunWeapon(FName TrenchName)
+{
+	if (CurrentHandWeapon)
+	{
+		AddGunWeapon(CurrentHandWeapon);
+		CurrentHandWeapon = nullptr;
+	}
+	for (int32 index = 0; index < GunTrenchArray.Num(); index++)
+	{
+		if (GunTrenchArray[index].IsName(TrenchName))
+		{
+			CurrentHandWeapon = GunTrenchArray[index].GetWeapon();
+			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
+			return CurrentHandWeapon;
+		}
+	}
+	return nullptr;
 }
 

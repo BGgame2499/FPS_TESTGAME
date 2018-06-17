@@ -8,6 +8,7 @@ AWeaponBase::AWeaponBase()
 	AttackHP_Value = 25.f;
 	AttackTimeInterval = 1.5f;
 	PrimaryActorTick.bCanEverTick = true;
+	TrenchName = "NULL";
 }
 
 float AWeaponBase::GetAttackHP() const

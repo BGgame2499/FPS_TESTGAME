@@ -17,6 +17,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		float GetAttackHP()const;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TrenchName")
+		FName TrenchName;
+
 protected:
 	virtual void BeginPlay() override;
 
