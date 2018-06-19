@@ -15,9 +15,8 @@ APlayerCharacterBase::APlayerCharacterBase()
 	PrimaryActorTick.bCanEverTick = true;
 	GunTrenchNum = 2;	//默认生成3个武器槽位
 	GunTrenchArray.SetNum(GunTrenchNum);
-	IK_Name_Array.SetNum(GunTrenchNum);
-	IK_Name_Array[0] = "Weapon_A";
-	IK_Name_Array[1] = "Weapon_B";
+	GunTrenchArray[0].SetTrenchName("Weapon_A");
+	GunTrenchArray[1].SetTrenchName("Weapon_B");
 	IsDie = false;
 	IsAim = false;
 	MaxHP = 100;
@@ -63,13 +62,6 @@ APlayerCharacterBase::APlayerCharacterBase()
 void APlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	for (int32 index = 0; index < GunTrenchNum; index++)	//初始化插槽数组名
-	{
-		if (index > IK_Name_Array.Num()){break;}
-
-		GunTrenchArray[index].TrenchName = IK_Name_Array[index];
-		
-	}
 
 	if (DefaultWeaponClass)	//创建两把武器
 	{
@@ -189,7 +181,7 @@ void APlayerCharacterBase::UpdateSpringLength(float Value)
 //////////////////////////////////////////////////////////////////////////开火控制
 void APlayerCharacterBase::AttackOn()
 {
-	if (CurrentHandWeapon)
+	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
 	{
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, true, 0.0f);
 	}
@@ -200,7 +192,7 @@ void APlayerCharacterBase::AttackOn()
 
 void APlayerCharacterBase::AttackOff()
 {
-	if (CurrentHandWeapon)
+	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
 	{
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
 	}
@@ -301,54 +293,81 @@ void APlayerCharacterBase::AimReleased()
 //////////////////////////////////////////////////////////////////////////武器控制
 void APlayerCharacterBase::Weapon_1Pressed()
 {
-	if (GunTrenchArray[0].IsWeapon() &&CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
-	{
-		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
-		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_1;
-	}
+	
+	TakeWeapon(CurrentHandWeaponStateEnum::Weapon_1);
+	
 }
 void APlayerCharacterBase::Weapon_2Pressed()
 {
-	if (GunTrenchArray[1].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
-	{
-		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
-		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Weapon_2;
-	}
+	
+	TakeWeapon(CurrentHandWeaponStateEnum::Weapon_2);
+	
 }
 
 void APlayerCharacterBase::HandPressed()
 {
-	if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
-	{
-		CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Down_Gun;
-		CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;
-	}
+	
+	TakeWeapon(CurrentHandWeaponStateEnum::Hand);
+	
 }
 
+void APlayerCharacterBase::TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum)
+{
+	if (CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
+	{
+		switch (HandWeaponEnum)
+		{
+		case CurrentHandWeaponStateEnum::Weapon_1:
+			if (GunTrenchArray[0].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
+			{
+				CurrentHandWeaponState = HandWeaponEnum;
+				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+			}
+			break;
+		case CurrentHandWeaponStateEnum::Weapon_2:
+			if (GunTrenchArray[1].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
+			{
+				CurrentHandWeaponState = HandWeaponEnum;
+				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+			}
+			break;
+		case CurrentHandWeaponStateEnum::Hand:
+			if (CurrentHandWeapon && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
+			{
+				CurrentHandWeaponState = HandWeaponEnum;
+				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Down_Gun;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+}
 
 void APlayerCharacterBase::UpdateWeapon()
 {
 	switch (CurrentHandWeaponState)
 	{
 	case CurrentHandWeaponStateEnum::Weapon_1:
-		GetGunWeapon(IK_Name_Array[0]);
+		GetGunWeapon(0);
 		break;
 	case CurrentHandWeaponStateEnum::Weapon_2:
 
-		GetGunWeapon(IK_Name_Array[1]);
+		GetGunWeapon(1);
 		break;
 	case CurrentHandWeaponStateEnum::Hand:
-		if (CurrentHandWeapon)
-		{
-			AddGunWeapon(CurrentHandWeapon);
-			CurrentHandWeapon = nullptr;
-		}
+	
+		AddGunWeapon(CurrentHandWeapon);
+		CurrentHandWeapon = nullptr;
+		
 		break;
 	default:
 		break;
 	}
 	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;
 }
+
 
 bool APlayerCharacterBase::AddGunWeapon(AWeaponBase * Gun)
 {
@@ -364,22 +383,23 @@ bool APlayerCharacterBase::AddGunWeapon(AWeaponBase * Gun)
 	return false;
 }
 
-AWeaponBase * APlayerCharacterBase::GetGunWeapon(FName TrenchName)
+AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 {
 	if (CurrentHandWeapon)
 	{
 		AddGunWeapon(CurrentHandWeapon);
 		CurrentHandWeapon = nullptr;
 	}
-	for (int32 index = 0; index < GunTrenchArray.Num(); index++)
+
+	if(GunTrenchArray.IsValidIndex(TrenchID))
+	CurrentHandWeapon = GunTrenchArray[TrenchID].GetWeapon();
+
+	if (CurrentHandWeapon)
 	{
-		if (GunTrenchArray[index].IsName(TrenchName))
-		{
-			CurrentHandWeapon = GunTrenchArray[index].GetWeapon();
-			CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
-			return CurrentHandWeapon;
-		}
+		CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
+		return CurrentHandWeapon;
 	}
+	
 	return nullptr;
 }
 

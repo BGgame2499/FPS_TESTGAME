@@ -23,7 +23,7 @@ AWeaponBase * FTrench::GetWeapon()
 
 bool FTrench::SetWeapon(USkeletalMeshComponent * mesh, AWeaponBase * weapon)
 {
-	if (TrenchName == "NULL")
+	if (TrenchName == "NULL" || weapon == nullptr)
 	{
 		return false;
 	}

@@ -11,16 +11,23 @@ struct FTrench
 	GENERATED_BODY()
 
 		FTrench();
+public:
 
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FName TrenchName;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class AWeaponBase * Weapon;
 
 
+	void SetTrenchName(FName name)
+	{
+		if (TrenchName == "NULL")
+		{
+			TrenchName = name;
+		}
 
+	}
 	bool IsName()
 	{
 		if (TrenchName == "NULL")

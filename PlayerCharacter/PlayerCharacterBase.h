@@ -81,6 +81,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		virtual void UpdateWeapon();
 
+	UFUNCTION(BlueprintCallable)
+		virtual void TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum);
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		int32 GunTrenchNum;	//要生成的插槽数量
@@ -92,13 +95,10 @@ public:
 		virtual bool AddGunWeapon(class AWeaponBase * Gun);
 
 	UFUNCTION(BlueprintCallable)
-		virtual AWeaponBase * GetGunWeapon(FName TrenchName);
+		virtual AWeaponBase * GetGunWeapon(int32 TrenchID);
 
 	///////////////////////////////////////////////////////////////////////////////////
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "IK_Name_Array")
-		TArray<FName> IK_Name_Array;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wepone_IK_name")
 		FName Wepone_Hand_name;
