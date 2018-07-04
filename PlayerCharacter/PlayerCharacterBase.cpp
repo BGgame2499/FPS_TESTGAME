@@ -57,6 +57,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> FindAimSpringCurve(TEXT("/Game/PUBG_Assent/Animation/AimSpringCurve")); //加载AimSpringCurve
 		AimSpringCurve = FindAimSpringCurve.Object;
 
+
 }
 
 void APlayerCharacterBase::BeginPlay()
@@ -65,9 +66,11 @@ void APlayerCharacterBase::BeginPlay()
 
 	if (DefaultWeaponClass)	//创建两把武器
 	{
-		AddGunWeapon(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
+		//AddWeapon_Int_Implementation(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
 
-		AddGunWeapon(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
+		//AddWeapon_Int_Implementation(GetWorld()->SpawnActor<AWeaponGun>(DefaultWeaponClass, FVector(0, 0, 0), FRotator(0, 0, 0)));
+
+		//GunTrenchArray[0].Weapon->ClonWeapon(GetTransform());	//测试克隆函数
 	}
 
 	if (TurnBackCurve)
@@ -129,6 +132,7 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Weapon_1", IE_Pressed, this, &APlayerCharacterBase::Weapon_1Pressed);
 	PlayerInputComponent->BindAction("Weapon_2", IE_Pressed, this, &APlayerCharacterBase::Weapon_2Pressed);
 	PlayerInputComponent->BindAction("Hand", IE_Pressed, this, &APlayerCharacterBase::HandPressed);
+	PlayerInputComponent->BindAction("ThrowWeapon", IE_Pressed, this, &APlayerCharacterBase::ThrowWeapon);
 }
 
 //////////////////////////////////////////////////////////////////////////血量
@@ -311,6 +315,18 @@ void APlayerCharacterBase::HandPressed()
 	
 }
 
+void APlayerCharacterBase::ThrowWeapon()
+{
+	if (CurrentHandWeapon)
+	{
+		CurrentHandWeapon->ClonWeapon(GetTransform());
+		CurrentHandWeapon->Destroy(true);
+		CurrentHandWeapon = nullptr;
+		TakeWeapon(CurrentHandWeaponStateEnum::Hand);
+	}
+
+}
+
 void APlayerCharacterBase::TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum)
 {
 	if (CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
@@ -318,21 +334,21 @@ void APlayerCharacterBase::TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum)
 		switch (HandWeaponEnum)
 		{
 		case CurrentHandWeaponStateEnum::Weapon_1:
-			if (GunTrenchArray[0].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_1)
+			if (GunTrenchArray[0].IsWeapon())
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
 				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
 			}
 			break;
 		case CurrentHandWeaponStateEnum::Weapon_2:
-			if (GunTrenchArray[1].IsWeapon() && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Weapon_2)
+			if (GunTrenchArray[1].IsWeapon())
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
 				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
 			}
 			break;
 		case CurrentHandWeaponStateEnum::Hand:
-			if (CurrentHandWeapon && CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
+			if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
 				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Down_Gun;
@@ -358,7 +374,7 @@ void APlayerCharacterBase::UpdateWeapon()
 		break;
 	case CurrentHandWeaponStateEnum::Hand:
 	
-		AddGunWeapon(CurrentHandWeapon);
+		AddWeapon_Int_Implementation(CurrentHandWeapon);
 		CurrentHandWeapon = nullptr;
 		
 		break;
@@ -369,7 +385,7 @@ void APlayerCharacterBase::UpdateWeapon()
 }
 
 
-bool APlayerCharacterBase::AddGunWeapon(AWeaponBase * Gun)
+bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 {
 	
 	for (int32 index = 0; index < GunTrenchArray.Num(); index++)
@@ -387,7 +403,7 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 {
 	if (CurrentHandWeapon)
 	{
-		AddGunWeapon(CurrentHandWeapon);
+		AddWeapon_Int_Implementation(CurrentHandWeapon);
 		CurrentHandWeapon = nullptr;
 	}
 

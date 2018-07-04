@@ -29,6 +29,6 @@ bool FTrench::SetWeapon(USkeletalMeshComponent * mesh, AWeaponBase * weapon)
 	}
 	weapon->TrenchName = TrenchName;
 	Weapon = weapon;
-	Weapon->AttachToComponent(mesh, FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), TrenchName);
+	Weapon->AttachToComponent(mesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TrenchName);
 	return true;
 }

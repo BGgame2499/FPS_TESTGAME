@@ -19,10 +19,10 @@ class II_Fire
 
 public:
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "FireInterface")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "FireInterface")	//BlueprintNativeEvent要有默认C++中实现
 		bool Fire_Int(bool isFire,float Time);
 
-	/*UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "FireInterface")  事件类型
+	/*UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "FireInterface")  //BlueprintImplementableEventC++中声明 蓝图实现
 		void TEST_Inter(bool is);*/
 
 };

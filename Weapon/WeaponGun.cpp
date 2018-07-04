@@ -6,7 +6,10 @@
 AWeaponGun::AWeaponGun()
 {
 	CurrentMuzzleLocation = FVector(0,0,0);
+	CurrentMuzzleName = "Muzzle";
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
+	WeaponSkletalMesh->SetupAttachment(WeaponHitSphere);
+	//WeaponSkletalMesh->SetSimulatePhysics(true);
 }
 
 void AWeaponGun::BeginPlay()

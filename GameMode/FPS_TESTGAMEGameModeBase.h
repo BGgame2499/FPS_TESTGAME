@@ -16,6 +16,9 @@ class FPS_TESTGAME_API AFPS_TESTGAMEGameModeBase : public AGameMode
 
 		AFPS_TESTGAMEGameModeBase();
 
+public:
+public:
+	virtual void BeginPlay();
 protected:
 	/* Called once on every new player that enters the gamemode 对每一个进入游戏玩家都调用一次*/
 	virtual FString InitNewPlayer(class APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal = TEXT("")) override;

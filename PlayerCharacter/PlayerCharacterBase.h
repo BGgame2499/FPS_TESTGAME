@@ -6,6 +6,7 @@
 #include "Components/TimelineComponent.h"
 #include "Enum/PlayerStateEnum.h"
 #include "Struct/BasicStruct.h"
+#include "Interface/AddWeaponInterface/I_AddWeapon.h"
 #include "PlayerCharacterBase.generated.h"
 
 UENUM(Blueprintable, BlueprintType)
@@ -19,7 +20,7 @@ enum class CurrentHandWeaponStateEnum : uint8
 };
 
 UCLASS()
-class FPS_TESTGAME_API APlayerCharacterBase : public ACharacter
+class FPS_TESTGAME_API APlayerCharacterBase : public ACharacter ,public II_AddWeapon
 {
 	GENERATED_BODY()
 
@@ -27,7 +28,7 @@ public:
 	APlayerCharacterBase();
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UStaticMeshComponent * PlayerMeshStatic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -92,7 +93,7 @@ public:
 		TArray<FTrench> GunTrenchArray;	//插槽数组
 
 	UFUNCTION(BlueprintCallable)
-		virtual bool AddGunWeapon(class AWeaponBase * Gun);
+		virtual bool AddWeapon_Int_Implementation(class AWeaponBase * Gun);	//实现添加武器接口
 
 	UFUNCTION(BlueprintCallable)
 		virtual AWeaponBase * GetGunWeapon(int32 TrenchID);
@@ -180,5 +181,7 @@ public:
 		void Weapon_2Pressed();
 	UFUNCTION(BlueprintCallable)
 		void HandPressed();
+	UFUNCTION(BlueprintCallable)
+		void ThrowWeapon();
 	
 };
