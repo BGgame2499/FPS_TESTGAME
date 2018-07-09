@@ -5,11 +5,14 @@
 
 AWeaponGun::AWeaponGun()
 {
-	CurrentMuzzleLocation = FVector(0,0,0);
+	CurrentMuzzleTransform = FTransform();
 	CurrentMuzzleName = "Muzzle";
+	ShellEjectionName = "ShellEjectionSocket";
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
 	WeaponSkletalMesh->SetupAttachment(WeaponHitSphere);
-	//WeaponSkletalMesh->SetSimulatePhysics(true);
+	WeaponSkletalMesh->SetSimulatePhysics(false);
+
+	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
 }
 
 void AWeaponGun::BeginPlay()
@@ -25,9 +28,14 @@ void AWeaponGun::Tick(float DeltaTime)
 
 bool AWeaponGun::OnAttack()
 {
-	CurrentMuzzleLocation = WeaponSkletalMesh->GetSocketLocation(CurrentMuzzleName);
-	if (CurrentMuzzleLocation != FVector(0,0,0))
+	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
+	if (IsCurrentBullet())
 	{
+		GetWorld()->SpawnActor<AActor>(BulletActorClass,FVector( CurrentMuzzleTransform.GetLocation()), FRotator( CurrentMuzzleTransform.GetRotation()));
+		UGameplayStatics::SpawnEmitterAttached(FireParticle, WeaponSkletalMesh, CurrentMuzzleName);
+		UGameplayStatics::SpawnEmitterAttached(FireMuzzleSmokeParticle, WeaponSkletalMesh, CurrentMuzzleName);
+		UGameplayStatics::SpawnEmitterAttached(FireShellEjectionParticle, WeaponSkletalMesh, ShellEjectionName);
+		UGameplayStatics::SpawnSoundAttached(FireSound, this->GetRootComponent());
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAttackFire", true);
 		return true;
 	}

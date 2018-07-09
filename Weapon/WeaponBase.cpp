@@ -3,9 +3,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
+#include "Components/SceneComponent.h"
 #include "Interface/AddWeaponInterface/I_AddWeapon.h"
 #include "Engine.h"
 
+float FireTickTimes = 0.0f;
 AWeaponBase::AWeaponBase()
 {
 	AttackHP_Value = 25.f;
@@ -14,14 +17,31 @@ AWeaponBase::AWeaponBase()
 	TrenchName = "NULL";
 	MaxReserveBullet = 120;
 	MaxCurrentBullet = 30;
+	ReserveBullet = MaxReserveBullet;
+	CurrentBullet = MaxCurrentBullet;
 	WeaponTime = 0.f;
+	WeaponHitTime = 1.5f;
+	WeaponFiringRate = 0.15f;	//武器攻击速度
 	isHit = false;
+	isAttackFire = false;
+	ThisWeaponSpeciesEnum = WeaponSpeciesEnum::SK_KA74U;	//当前武器的种类
 
+
+	//WeaponRootScene = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponRootScene"));
+
+	//WeaponStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponStaticMesh"));
+	//WeaponStaticMesh->SetSimulatePhysics(true);
+	//WeaponStaticMesh->SetupAttachment(GetRootComponent());
 
 	WeaponHitSphere = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponHitSphere"));
 	WeaponHitSphere->SetSphereRadius(55.0f);
-	WeaponHitSphere->SetupAttachment(this->GetRootComponent());
+	WeaponHitSphere->SetupAttachment(GetRootComponent());
 	WeaponHitSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::BeginHit);
+
+
+	//WeaponBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponBox"));
+	//WeaponBox->SetSimulatePhysics(true);
+
 }
 
 float AWeaponBase::GetAttackHP() const
@@ -32,6 +52,21 @@ float AWeaponBase::GetAttackHP() const
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	this->SetActorRotation(FRotator(-90, 0, 0));
+
+
+	//设置碰撞参数，Tag为一个字符串用于以后识别，true是TraceParams.bTraceComplex，this是InIgnoreActor    
+	FCollisionQueryParams TraceParams(FName(TEXT("TraceUsableActor")), true, this);    
+	TraceParams.bTraceAsyncScene = true;    
+	TraceParams.bReturnPhysicalMaterial = false;    //使用复杂Collision判定，逐面判定，更加准确        
+	TraceParams.bTraceComplex = true;    /* FHitResults负责接受结果 */ 
+
+	FHitResult Hit(ForceInit);
+	if (GetWorld()->LineTraceSingleByChannel(Hit,GetActorLocation(), FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - 1000), ECollisionChannel::ECC_Camera, TraceParams))
+	{
+		SetActorLocation(FVector(Hit.Location.X, Hit.Location.Y, Hit.Location.Z+2));
+	}
 	
 }
 
@@ -39,9 +74,19 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	WeaponTime += DeltaTime;
-	if (WeaponTime >= 1.0f&&WeaponTime <= 1.5f)
+	if (WeaponTime >= WeaponHitTime && WeaponTime <= WeaponHitTime + DeltaTime)
 	{
 		isHit = true;
+	}
+	if (isAttackFire)
+	{
+		FireTickTimes += DeltaTime;
+		if (FireTickTimes >= WeaponFiringRate)
+		{
+			FireTickTimes = 0.0f;
+			isAttackFire = OnAttack();
+		}
+
 	}
 }
 
@@ -50,11 +95,15 @@ bool AWeaponBase::Fire_Int_Implementation(bool isFire, float Time)
 
 	if (isFire)
 	{
-		OnAttack();
+		if (IsCurrentBullet())
+		{
+			isAttackFire = OnAttack();
+			
+		}
 	}
 	else 
 	{
-		OffAttack();
+		isAttackFire = false;
 	}
 	return false;
 }

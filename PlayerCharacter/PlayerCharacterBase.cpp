@@ -2,6 +2,7 @@
 #include "PlayerCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h" 
 #include "GameFramework/CharacterMovementComponent.h"
@@ -38,8 +39,11 @@ APlayerCharacterBase::APlayerCharacterBase()
 	AimSpringLength = 150.0f;
 
 
-	PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
-	PlayerMeshStatic->SetupAttachment(GetRootComponent());
+	//PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
+	//PlayerMeshStatic->SetupAttachment(GetRootComponent());
+
+
+
 
 	CameraBoomComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoomComp"));
 	CameraBoomComp->SetupAttachment(GetRootComponent());
@@ -47,6 +51,9 @@ APlayerCharacterBase::APlayerCharacterBase()
 	CameraBoomComp->TargetOffset = FVector(0, 0, 55);
 	CameraBoomComp->bUsePawnControlRotation = true;	//允许跟随角色旋转
 	CameraBoomComp->bEnableCameraRotationLag = true;
+
+	ThrowWeaponScene = CreateDefaultSubobject<USceneComponent>(TEXT("ThrowWeaponScene"));
+	ThrowWeaponScene->SetupAttachment(GetRootComponent());
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(CameraBoomComp);
@@ -105,6 +112,7 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 
 	TurnBackTimeLine.TickTimeline(DeltaTime); //tick中绑定TimeLine
 	AimSpringTimeLine.TickTimeline(DeltaTime);
+
 
 }
 void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -319,7 +327,21 @@ void APlayerCharacterBase::ThrowWeapon()
 {
 	if (CurrentHandWeapon)
 	{
-		CurrentHandWeapon->ClonWeapon(GetTransform());
+		//设置碰撞参数，Tag为一个字符串用于以后识别，true是TraceParams.bTraceComplex，this是InIgnoreActor    
+		FCollisionQueryParams TraceParams(FName(TEXT("TraceUsableActor")), true, this);
+		TraceParams.bTraceAsyncScene = true;
+		TraceParams.bReturnPhysicalMaterial = false;    //使用复杂Collision判定，逐面判定，更加准确        
+		TraceParams.bTraceComplex = true;    /* FHitResults负责接受结果 */
+
+		FHitResult Hit(ForceInit);
+		if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), ThrowWeaponScene->GetComponentLocation(), ECollisionChannel::ECC_Camera,TraceParams))
+		{
+			CurrentHandWeapon->ClonWeapon(FTransform(Hit.Location));
+		}
+		else
+		{
+			CurrentHandWeapon->ClonWeapon(FTransform(ThrowWeaponScene->GetComponentLocation()));
+		}
 		CurrentHandWeapon->Destroy(true);
 		CurrentHandWeapon = nullptr;
 		TakeWeapon(CurrentHandWeaponStateEnum::Hand);
@@ -387,11 +409,16 @@ void APlayerCharacterBase::UpdateWeapon()
 
 bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 {
+	if (Gun == nullptr)
+	{
+		return false;
+	}
 	
 	for (int32 index = 0; index < GunTrenchArray.Num(); index++)
 	{
 		if (!GunTrenchArray[index].IsWeapon())
 		{
+			Gun->Execute_Fire_Int(Gun, false, 0.0f);
 			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
 			return true;
 		}

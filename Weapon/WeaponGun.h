@@ -20,11 +20,26 @@ public:
 		class USkeletalMeshComponent * WeaponSkletalMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "WeponeBasicValue")
-	FName CurrentMuzzleName;
+	FName CurrentMuzzleName; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
-	FVector CurrentMuzzleLocation;
+	FName ShellEjectionName; 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+	FTransform CurrentMuzzleTransform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		TSubclassOf<AActor> BulletActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+		UParticleSystem * FireParticle;		//开火特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+		UParticleSystem * FireMuzzleSmokeParticle;		//开火烟特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+		UParticleSystem * FireShellEjectionParticle;		//开火弹壳特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSound")
+		USoundCue * FireSound;		//开火音效
+	
 protected:
 	virtual void BeginPlay() override;
 

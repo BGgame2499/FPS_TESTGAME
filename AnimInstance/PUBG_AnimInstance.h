@@ -40,6 +40,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
 		bool IsCrouch;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
+		bool IsAim;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
+		bool isWeaponAttackFire;
 public:
 	UFUNCTION(BlueprintCallable)
 	void AnimNotify_TakeWeaponGun(UAnimNotify * Notify);

@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/AttackInterface/I_Fire.h"
+#include"Enum/WeaponSpeciesEnum.h"
 #include "WeaponBase.generated.h"
 
 //template<class T>
@@ -24,8 +25,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		float GetAttackHP()const;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponStaticMesh")
+	//	class UStaticMeshComponent * WeaponStaticMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponHitBox")
 		class USphereComponent * WeaponHitSphere;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponRootScene")
+	//	class USceneComponent * WeaponRootScene;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponBox")
+	//	class UBoxComponent * WeaponBox;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TrenchName")
 		FName TrenchName;
@@ -35,6 +42,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet")
 		int32 MaxCurrentBullet;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		WeaponSpeciesEnum ThisWeaponSpeciesEnum;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		bool isAttackFire;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		float WeaponHitTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+	float WeaponFiringRate;
 private:
 	int32 ReserveBullet;
 	int32 CurrentBullet;
@@ -50,6 +66,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "WeponeBasicValue")
 		float AttackTimeInterval;
+
 
 public:	
 	virtual void Tick(float DeltaTime) override;

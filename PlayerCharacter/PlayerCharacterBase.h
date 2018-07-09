@@ -28,14 +28,17 @@ public:
 	APlayerCharacterBase();
 
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	UStaticMeshComponent * PlayerMeshStatic;
+	//UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	//UStaticMeshComponent * PlayerMeshStatic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USpringArmComponent * CameraBoomComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UCameraComponent * CameraComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class USceneComponent * ThrowWeaponScene;
 	
 	class UCharacterMovementComponent * MovementComp;
 

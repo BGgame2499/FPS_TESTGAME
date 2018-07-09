@@ -2,6 +2,7 @@
 
 #include "PUBG_AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Weapon/WeaponBase.h"
 #include "PlayerCharacter/PlayerCharacterBase.h"
 
 void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -28,6 +29,13 @@ void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		//¼ì²âÏÂ¶×
 		IsCrouch = CurrentPlayerPawn->GetMovementComponent()->IsCrouching();
+
+		IsAim = CurrentPlayerPawn->IsAim;
+
+		if (CurrentPlayerPawn->CurrentHandWeapon)
+		{
+			isWeaponAttackFire = CurrentPlayerPawn->CurrentHandWeapon->isAttackFire;
+		}
 
 	}
 
