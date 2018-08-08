@@ -100,4 +100,7 @@ public:
 		virtual int32 GetReserveBullet() { return ReserveBullet; };
 	UFUNCTION(BlueprintCallable)
 		virtual int32 GetCurrentBullet() { return CurrentBullet; };
+
+	UFUNCTION(BlueprintCallable)
+		virtual void PlayWeaponParticle() {};
 };

@@ -12,6 +12,16 @@ void AFPS_TESTGAMEGameModeBase::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AFPS_TESTGAMEGameModeBase::CompleteMission(APawn * InstigatorPawn)
+{
+	if (InstigatorPawn)
+	{
+		InstigatorPawn->DisableInput(nullptr);
+	}
+	
+
+}
+
 FString AFPS_TESTGAMEGameModeBase::InitNewPlayer(APlayerController * NewPlayerController, const FUniqueNetIdRepl & UniqueId, const FString & Options, const FString & Portal)
 {
 	FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);

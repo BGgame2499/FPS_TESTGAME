@@ -61,6 +61,7 @@ void AWeaponBase::BeginPlay()
 	TraceParams.bTraceAsyncScene = true;    
 	TraceParams.bReturnPhysicalMaterial = false;    //使用复杂Collision判定，逐面判定，更加准确        
 	TraceParams.bTraceComplex = true;    /* FHitResults负责接受结果 */ 
+	TraceParams.AddIgnoredActor(this);
 
 	FHitResult Hit(ForceInit);
 	if (GetWorld()->LineTraceSingleByChannel(Hit,GetActorLocation(), FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - 1000), ECollisionChannel::ECC_Camera, TraceParams))

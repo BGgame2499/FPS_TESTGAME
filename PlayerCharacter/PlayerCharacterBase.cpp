@@ -10,6 +10,7 @@
 #include "Weapon/WeaponGun.h"
 #include "Weapon/WeaponBase.h"
 #include "Components/InputComponent.h"
+#include "GameMode/FPS_TESTGAMEGameModeBase.h"
 #include "Engine.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
@@ -35,8 +36,9 @@ APlayerCharacterBase::APlayerCharacterBase()
 	WalkSpeed = 190;
 	CrouchSpeed = 190;
 
-	CurrentSpringLength = 300.0f;
-	AimSpringLength = 150.0f;
+	DefaultFOV = 90.0f;
+	ZoomedFOV = 60.0f;
+	ZoomInterSpeed = 0.5f;
 
 
 	//PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
@@ -84,7 +86,7 @@ void APlayerCharacterBase::BeginPlay()
 	{
 		FOnTimelineFloat TurnBackTimelineCallBack;
 		FOnTimelineEventStatic TurnBackTimelineFinishedCallback;	//绑定TimeLine播放完后调用的函数
-
+		 
 		TurnBackTimelineCallBack.BindUFunction(this, TEXT("UpdateControllerRotation"));//第一个调用函数对象 第二个为调用函数名
 		TurnBackTimelineFinishedCallback.BindLambda([this]() {bUseControllerRotationYaw = false; });	//结束后执行Lambda表达式 将bUseControllerRotationYaw恢复为true
 
@@ -95,12 +97,19 @@ void APlayerCharacterBase::BeginPlay()
 
 	if (AimSpringCurve)
 	{
-		FOnTimelineFloat AimSpringTimelineCallBack;
+		FOnTimelineFloatStatic AimSpringTimelineCallBack;
 
 		AimSpringTimelineCallBack.BindUFunction(this, TEXT("UpdateSpringLength"));
 
 		AimSpringTimeLine.AddInterpFloat(AimSpringCurve, AimSpringTimelineCallBack);
 
+	}
+
+
+	AFPS_TESTGAMEGameModeBase * GM = Cast<AFPS_TESTGAMEGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (GM)
+	{
+		CurrentGameModeBase = GM;
 	}
 
 }
@@ -141,6 +150,24 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Weapon_2", IE_Pressed, this, &APlayerCharacterBase::Weapon_2Pressed);
 	PlayerInputComponent->BindAction("Hand", IE_Pressed, this, &APlayerCharacterBase::HandPressed);
 	PlayerInputComponent->BindAction("ThrowWeapon", IE_Pressed, this, &APlayerCharacterBase::ThrowWeapon);
+}
+
+FVector APlayerCharacterBase::GetPawnViewLocation() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetComponentLocation();
+	}
+	return Super::GetPawnViewLocation();
+}
+
+FRotator APlayerCharacterBase::GetViewRotation() const
+{
+	//if (CameraComp)
+	{
+		//return CameraComp->GetComponentRotation();
+	}
+	return Super::GetViewRotation();
 }
 
 //////////////////////////////////////////////////////////////////////////血量
@@ -184,10 +211,10 @@ void APlayerCharacterBase::UpdateControllerRotation(float Value)
 
 void APlayerCharacterBase::UpdateSpringLength(float Value)
 {
+	float TargetFOV = IsAim ? ZoomedFOV : DefaultFOV;
+	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, Value, ZoomInterSpeed);
 
-	float NewArmLength = FMath::Lerp(CurrentSpringLength, AimSpringLength, Value);
-
-	CameraBoomComp->TargetArmLength = NewArmLength;
+	CameraComp->SetFieldOfView(NewFOV);
 
 }
 //////////////////////////////////////////////////////////////////////////开火控制
@@ -294,7 +321,7 @@ void APlayerCharacterBase::AimReleased()
 {
 
 	bUseControllerRotationYaw = false;
-	AimSpringTimeLine.ReverseFromEnd();	//倒叙播放AimSpringTimeLine
+	AimSpringTimeLine.PlayFromStart();	//倒叙播放AimSpringTimeLine
 
 	IsAim = false;
 	
@@ -305,7 +332,7 @@ void APlayerCharacterBase::AimReleased()
 //////////////////////////////////////////////////////////////////////////武器控制
 void APlayerCharacterBase::Weapon_1Pressed()
 {
-	
+
 	TakeWeapon(CurrentHandWeaponStateEnum::Weapon_1);
 	
 }
@@ -420,6 +447,7 @@ bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 		{
 			Gun->Execute_Fire_Int(Gun, false, 0.0f);
 			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
+			Gun->SetOwner(this);
 			return true;
 		}
 	}

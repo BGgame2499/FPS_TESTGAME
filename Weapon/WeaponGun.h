@@ -6,6 +6,8 @@
 #include "Weapon/WeaponBase.h"
 #include "WeaponGun.generated.h"
 
+class UDamageType;
+class UCameraShake;
 /**
  * 
  */
@@ -31,6 +33,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		TSubclassOf<AActor> BulletActorClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		TSubclassOf< UDamageType > DamageType;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireParticle;		//开火特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
@@ -39,7 +44,17 @@ public:
 		UParticleSystem * FireShellEjectionParticle;		//开火弹壳特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSound")
 		USoundCue * FireSound;		//开火音效
-	
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponFireShake")
+		TSubclassOf<UCameraShake> FireCameraShake;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")
+	FVector GunMuzzleOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")
+	FRotator BulletSpawnRotation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")
+	FVector BulletSpawnLocation;
+private:
 protected:
 	virtual void BeginPlay() override;
 
@@ -48,5 +63,7 @@ public:
 
 	virtual bool OnAttack()override;
 	virtual bool OffAttack()override;
+
+		virtual void PlayWeaponParticle() override;
 	
 };

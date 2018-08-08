@@ -9,7 +9,7 @@
 #include "Interface/AddWeaponInterface/I_AddWeapon.h"
 #include "PlayerCharacterBase.generated.h"
 
-UENUM(Blueprintable, BlueprintType)
+UENUM(BlueprintType)
 enum class CurrentHandWeaponStateEnum : uint8
 {
 	Weapon_1,
@@ -130,14 +130,24 @@ public:
 	UFUNCTION()
 		void UpdateSpringLength(float Value);
 
-	float CurrentSpringLength;
-	float AimSpringLength;
+	float DefaultFOV;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Aim")
+	float ZoomedFOV;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim",meta = (ClampMin = 0.1f , ClampMax = 100.0f))
+	float ZoomInterSpeed;
+
+	///////////////////////////////////////////////////////////////////////////////////
+
+	UPROPERTY(BlueprintReadOnly, Category = "CurrentGameModeBase")
+		class AFPS_TESTGAMEGameModeBase * CurrentGameModeBase;
 
 private:
 	int32 HP;
 protected:
 	virtual void BeginPlay() override;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetHP();
@@ -148,6 +158,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual FVector GetPawnViewLocation() const override;
+	virtual FRotator GetViewRotation() const override;
 
 	void ExamineHP();
 
