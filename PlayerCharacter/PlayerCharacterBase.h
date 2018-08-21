@@ -39,7 +39,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USceneComponent * ThrowWeaponScene;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UHealthComponent * HealthComp;
+
 	class UCharacterMovementComponent * MovementComp;
 
 public:
@@ -52,12 +55,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 		bool IsAim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-	int32 MaxHP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-	int32 MinHP; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 		int32 SprintSpeed;
@@ -144,16 +141,10 @@ public:
 		class AFPS_TESTGAMEGameModeBase * CurrentGameModeBase;
 
 private:
-	int32 HP;
+
 protected:
 	virtual void BeginPlay() override;
 
-public:
-	UFUNCTION(BlueprintCallable)
-	int32 GetHP();
-
-	UFUNCTION(BlueprintCallable)
-	int32 AddHP(int32 hp);
 public:	
 	virtual void Tick(float DeltaTime) override;
 
@@ -161,8 +152,6 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 	virtual FRotator GetViewRotation() const override;
-
-	void ExamineHP();
 
 
 	UFUNCTION(BlueprintCallable)

@@ -8,7 +8,6 @@
 #include "Interface/AddWeaponInterface/I_AddWeapon.h"
 #include "Engine.h"
 
-float FireTickTimes = 0.0f;
 AWeaponBase::AWeaponBase()
 {
 	AttackHP_Value = 25.f;
@@ -21,7 +20,6 @@ AWeaponBase::AWeaponBase()
 	CurrentBullet = MaxCurrentBullet;
 	WeaponTime = 0.f;
 	WeaponHitTime = 1.5f;
-	WeaponFiringRate = 0.15f;	//武器攻击速度
 	isHit = false;
 	isAttackFire = false;
 	ThisWeaponSpeciesEnum = WeaponSpeciesEnum::SK_KA74U;	//当前武器的种类
@@ -79,16 +77,7 @@ void AWeaponBase::Tick(float DeltaTime)
 	{
 		isHit = true;
 	}
-	if (isAttackFire)
-	{
-		FireTickTimes += DeltaTime;
-		if (FireTickTimes >= WeaponFiringRate)
-		{
-			FireTickTimes = 0.0f;
-			isAttackFire = OnAttack();
-		}
 
-	}
 }
 
 bool AWeaponBase::Fire_Int_Implementation(bool isFire, float Time)
@@ -98,7 +87,7 @@ bool AWeaponBase::Fire_Int_Implementation(bool isFire, float Time)
 	{
 		if (IsCurrentBullet())
 		{
-			isAttackFire = OnAttack();
+			isAttackFire = true;
 			
 		}
 	}
@@ -153,14 +142,12 @@ bool AWeaponBase::Reload()
 	return false;
 }
 
-bool AWeaponBase::OnAttack()
+void AWeaponBase::OnAttack()
 {
-	return false;
 }
 
-bool AWeaponBase::OffAttack()
+void AWeaponBase::OffAttack()
 {
-	return false;
 }
 
 

@@ -1,11 +1,14 @@
 
 #include "PlayerCharacterBase.h"
+#include "FPS_TESTGAME.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h" 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/HealthComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Weapon/WeaponFire.h"
 #include "Weapon/WeaponGun.h"
 #include "Weapon/WeaponBase.h"
@@ -15,15 +18,12 @@
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	GunTrenchNum = 2;	//默认生成3个武器槽位
+	GunTrenchNum = 2;	//默认生成2个武器槽位
 	GunTrenchArray.SetNum(GunTrenchNum);
 	GunTrenchArray[0].SetTrenchName("Weapon_A");
 	GunTrenchArray[1].SetTrenchName("Weapon_B");
 	IsDie = false;
 	IsAim = false;
-	MaxHP = 100;
-	MinHP = 0;
-	HP = MaxHP;
 	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
 	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;	//武器动画枚举
 	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
@@ -59,6 +59,10 @@ APlayerCharacterBase::APlayerCharacterBase()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(CameraBoomComp);
+
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);		//胶囊体忽略武器碰撞
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> FindTurnBackCurve(TEXT("/Game/PUBG_Assent/Animation/TurnBackCurve")); //加载TurnBackCurve
 		TurnBackCurve = FindTurnBackCurve.Object;
@@ -117,8 +121,6 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	ExamineHP();
-
 	TurnBackTimeLine.TickTimeline(DeltaTime); //tick中绑定TimeLine
 	AimSpringTimeLine.TickTimeline(DeltaTime);
 
@@ -170,36 +172,6 @@ FRotator APlayerCharacterBase::GetViewRotation() const
 	return Super::GetViewRotation();
 }
 
-//////////////////////////////////////////////////////////////////////////血量
-int32 APlayerCharacterBase::GetHP()
-{
-	return HP;
-}
-
-int32 APlayerCharacterBase::AddHP(int32 hp)
-{
-	if (!IsDie)
-	{
-		if (HP + hp > MaxHP)
-		{
-			HP = MaxHP;
-		}
-		else
-		{
-			HP += hp;
-		}
-	}
-	return HP;
-}
-
-void APlayerCharacterBase::ExamineHP()
-{
-	if (GetHP() <= MinHP)
-	{
-		HP = MinHP;
-		IsDie = true;
-	}
-}
 //////////////////////////////////////////////////////////////////////////TimeLine调用函数
 void APlayerCharacterBase::UpdateControllerRotation(float Value)
 {

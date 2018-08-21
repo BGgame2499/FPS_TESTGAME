@@ -49,8 +49,6 @@ public:
 		bool isAttackFire;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		float WeaponHitTime;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
-	float WeaponFiringRate;
 private:
 	int32 ReserveBullet;
 	int32 CurrentBullet;
@@ -85,9 +83,9 @@ public:
 		virtual bool Reload();
 
 	UFUNCTION(BlueprintCallable)
-	virtual bool OnAttack();
+	virtual void OnAttack();
 	UFUNCTION(BlueprintCallable)
-	virtual bool OffAttack();
+	virtual void OffAttack();
 
 	UFUNCTION(BlueprintCallable)
 	virtual AWeaponBase * ClonWeapon(FTransform ClonWeaponTransform);

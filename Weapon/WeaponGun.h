@@ -36,16 +36,34 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		TSubclassOf< UDamageType > DamageType;
 
+	////////////////////////////////////////////////////武器特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireParticle;		//开火特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireMuzzleSmokeParticle;		//开火烟特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireShellEjectionParticle;		//开火弹壳特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+		UParticleSystem * DefaultImpactEffect;				//默认击中特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+		TArray<UParticleSystem *> ImpactParticleArray;		//击中特效数组
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSound")
 		USoundCue * FireSound;		//开火音效
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponFireShake")
 		TSubclassOf<UCameraShake> FireCameraShake;
+
+	////////////////////////////////////////////////////武器参数
+	float  LastFireTime;   //记录之前开火的时间
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+	float  RateOfFire;   //每分钟的开火速率
+
+	float  TimeBetweenShots;  //获取到开火时间间隔
+
+	FTimerHandle  TimerHandle_WeaponFireTimeHand;
+
+
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")
 	FVector GunMuzzleOffset;
@@ -54,6 +72,12 @@ public:
 	FRotator BulletSpawnRotation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")
 	FVector BulletSpawnLocation;
+
+
+public:
+	UFUNCTION(BlueprintCallable)
+		UParticleSystem * GetImpactParticle(EPhysicalSurface  SurfaceType);
+
 private:
 protected:
 	virtual void BeginPlay() override;
@@ -61,9 +85,11 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	virtual bool OnAttack()override;
-	virtual bool OffAttack()override;
+	virtual void OnAttack()override;
+	virtual void OffAttack()override;
 
-		virtual void PlayWeaponParticle() override;
+		virtual void PlayWeaponParticle() override;		//武器特效集中在此
+
+		virtual bool Fire_Int_Implementation(bool isFire, float Time) override;
 	
 };
