@@ -30,7 +30,7 @@ void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		//¼ì²âÏÂ¶×
 		IsCrouch = CurrentPlayerPawn->GetMovementComponent()->IsCrouching();
 
-		IsAim = CurrentPlayerPawn->IsAim;
+		IsAim = CurrentPlayerPawn->bAim;
 
 		if (CurrentPlayerPawn->CurrentHandWeapon)
 		{

@@ -21,9 +21,11 @@ AWeaponGun::AWeaponGun()
 	ShellEjectionName = "ShellEjectionSocket";
 
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
-	WeaponSkletalMesh->SetupAttachment(WeaponHitSphere);
+	//WeaponSkletalMesh->SetSimulatePhysics(true);
+	WeaponHitSphere->SetupAttachment(WeaponSkletalMesh);
 
 	GunMuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
+	AttackLinearVelocity = 1000.0f;
 
 	RateOfFire = 400.0f;   //默认每分钟的开火速率
 
@@ -35,6 +37,19 @@ void AWeaponGun::BeginPlay()
 	Super::BeginPlay();
 
 	TimeBetweenShots = 60 / RateOfFire;  //获取到开火时间间隔
+}
+
+void AWeaponGun::SetCurrentMeshCollision(bool bCollision)	//武器模型的碰撞设置
+{
+	if (bCollision)
+	{
+		WeaponSkletalMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	}
+	else
+	{
+
+		WeaponSkletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void AWeaponGun::Tick(float DeltaTime)
@@ -85,7 +100,8 @@ void AWeaponGun::OnAttack()	//开火
 		{
 			AActor * HitActor = Hit.GetActor();
 
-			UGameplayStatics::ApplyPointDamage(HitActor, 10.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+			UGameplayStatics::ApplyPointDamage(HitActor, AttackHP_Value, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);	//施加伤害
+			Hit.GetComponent()->SetPhysicsLinearVelocity(ShotDirection * AttackLinearVelocity);	//施加力
 			
 			
 		}

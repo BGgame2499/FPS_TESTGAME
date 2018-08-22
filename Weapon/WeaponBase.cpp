@@ -64,9 +64,13 @@ void AWeaponBase::BeginPlay()
 	FHitResult Hit(ForceInit);
 	if (GetWorld()->LineTraceSingleByChannel(Hit,GetActorLocation(), FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - 1000), ECollisionChannel::ECC_Camera, TraceParams))
 	{
-		SetActorLocation(FVector(Hit.Location.X, Hit.Location.Y, Hit.Location.Z+2));
+		//SetActorLocation(FVector(Hit.Location.X, Hit.Location.Y, Hit.Location.Z+2));
 	}
 	
+}
+
+void AWeaponBase::SetCurrentMeshCollision(bool bCollision)
+{
 }
 
 void AWeaponBase::Tick(float DeltaTime)
@@ -107,7 +111,13 @@ void AWeaponBase::BeginHit(UPrimitiveComponent * OverlappedComponent, AActor * O
 		{
 			if (AddWeaponInter->Execute_AddWeapon_Int(OtherActor, this))
 			{
+				SetCurrentMeshCollision(false);
 				isHit = false;
+			}
+			else
+			{
+				SetCurrentMeshCollision(true);
+
 			}
 		}
 	}

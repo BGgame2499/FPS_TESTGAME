@@ -22,8 +22,8 @@ APlayerCharacterBase::APlayerCharacterBase()
 	GunTrenchArray.SetNum(GunTrenchNum);
 	GunTrenchArray[0].SetTrenchName("Weapon_A");
 	GunTrenchArray[1].SetTrenchName("Weapon_B");
-	IsDie = false;
-	IsAim = false;
+	bDied = false;
+	bAim = false;
 	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
 	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;	//武器动画枚举
 	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
@@ -116,7 +116,33 @@ void APlayerCharacterBase::BeginPlay()
 		CurrentGameModeBase = GM;
 	}
 
+	HealthComp->OnHealthChanged.AddDynamic(this, &APlayerCharacterBase::OnHealthChanged);	//绑定血量响应事件
+
 }
+
+void APlayerCharacterBase::OnHealthChanged(UHealthComponent * HealthComponent, float Health, float HealthDelta, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
+{
+	if (Health <= 0.0f && !bDied)	//检查并执行死亡函数
+	{
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DetachFromControllerPendingDestroy();
+		//SetLifeSpan(5.0f);  //设置自动销毁时间
+		GetMesh()->SetSimulatePhysics(true);
+
+		/*for (int32 index = 0; index < GunTrenchArray.Num(); index++)
+		{
+			if (GunTrenchArray[index].IsWeapon())
+			{
+				GunTrenchArray[index].GetWeapon()->SetCurrentMeshCollision(false);
+			}
+		}*/
+
+		bDied = true;
+
+	}
+}
+
 void APlayerCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -183,7 +209,7 @@ void APlayerCharacterBase::UpdateControllerRotation(float Value)
 
 void APlayerCharacterBase::UpdateSpringLength(float Value)
 {
-	float TargetFOV = IsAim ? ZoomedFOV : DefaultFOV;
+	float TargetFOV = bAim ? ZoomedFOV : DefaultFOV;
 	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, Value, ZoomInterSpeed);
 
 	CameraComp->SetFieldOfView(NewFOV);
@@ -208,7 +234,7 @@ void APlayerCharacterBase::AttackOff()
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
 	}
 
-	if (!IsAim)
+	if (!bAim)
 	{
 		bUseControllerRotationYaw = false;
 	}
@@ -217,7 +243,7 @@ void APlayerCharacterBase::AttackOff()
 //////////////////////////////////////////////////////////////////////////行走控制
 void APlayerCharacterBase::SprintPressed()
 {
-	if (!IsAim)	
+	if (!bAim)	
 	{
 		MovementComp->MaxWalkSpeed = SprintSpeed;
 	}
@@ -229,7 +255,7 @@ void APlayerCharacterBase::SprintPressed()
 
 void APlayerCharacterBase::SprintReleased()
 {
-	if (!IsAim)
+	if (!bAim)
 	{
 		MovementComp->MaxWalkSpeed = RunSpeed;
 	}
@@ -281,7 +307,7 @@ void APlayerCharacterBase::AimPressed()
 
 	bUseControllerRotationYaw = true;
 	AimSpringTimeLine.PlayFromStart();
-	IsAim = true;
+	bAim = true;
 
 	if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)		//如果现在的武器不是拳头则限制走路速度
 	{
@@ -295,7 +321,7 @@ void APlayerCharacterBase::AimReleased()
 	bUseControllerRotationYaw = false;
 	AimSpringTimeLine.PlayFromStart();	//倒叙播放AimSpringTimeLine
 
-	IsAim = false;
+	bAim = false;
 	
 	MovementComp->MaxWalkSpeed = RunSpeed;
 	

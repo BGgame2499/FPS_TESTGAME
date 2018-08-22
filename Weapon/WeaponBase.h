@@ -71,6 +71,7 @@ public:
 
 	virtual bool Fire_Int_Implementation(bool isFire,float Time);
 
+	virtual void SetCurrentMeshCollision(bool bCollision);
 
 	UFUNCTION()
 		void BeginHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);

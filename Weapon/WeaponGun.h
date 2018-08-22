@@ -36,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		TSubclassOf< UDamageType > DamageType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")	//武器攻击物理力度
+		float AttackLinearVelocity;
+
 	////////////////////////////////////////////////////武器特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireParticle;		//开火特效
@@ -91,5 +94,6 @@ public:
 		virtual void PlayWeaponParticle() override;		//武器特效集中在此
 
 		virtual bool Fire_Int_Implementation(bool isFire, float Time) override;
-	
+
+		virtual void SetCurrentMeshCollision(bool bCollision) override;
 };

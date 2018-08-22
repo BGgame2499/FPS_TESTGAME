@@ -51,10 +51,10 @@ public:
 		//PlayerStateEnum  CurrentStateEnum;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "PlayerState")
-		bool IsDie;
+		bool bDied;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
-		bool IsAim;
+		bool bAim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 		int32 SprintSpeed;
@@ -145,6 +145,7 @@ private:
 protected:
 	virtual void BeginPlay() override;
 
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 
@@ -154,6 +155,8 @@ public:
 	virtual FRotator GetViewRotation() const override;
 
 
+	UFUNCTION()
+		void OnHealthChanged(UHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	UFUNCTION(BlueprintCallable)
 	void AttackOn();
 	UFUNCTION(BlueprintCallable)
