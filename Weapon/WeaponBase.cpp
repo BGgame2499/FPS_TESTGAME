@@ -109,9 +109,9 @@ void AWeaponBase::BeginHit(UPrimitiveComponent * OverlappedComponent, AActor * O
 		II_AddWeapon * AddWeaponInter = Cast<II_AddWeapon>(OtherActor);
 		if (AddWeaponInter)
 		{
+			SetCurrentMeshCollision(false);
 			if (AddWeaponInter->Execute_AddWeapon_Int(OtherActor, this))
 			{
-				SetCurrentMeshCollision(false);
 				isHit = false;
 			}
 			else

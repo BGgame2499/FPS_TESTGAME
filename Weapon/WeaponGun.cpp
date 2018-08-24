@@ -43,11 +43,13 @@ void AWeaponGun::SetCurrentMeshCollision(bool bCollision)	//武器模型的碰撞设置
 {
 	if (bCollision)
 	{
+		WeaponSkletalMesh->SetSimulatePhysics(true);
 		WeaponSkletalMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	}
 	else
 	{
 
+		WeaponSkletalMesh->SetSimulatePhysics(false);
 		WeaponSkletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
@@ -101,13 +103,9 @@ void AWeaponGun::OnAttack()	//开火
 			AActor * HitActor = Hit.GetActor();
 
 			UGameplayStatics::ApplyPointDamage(HitActor, AttackHP_Value, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);	//施加伤害
-			Hit.GetComponent()->SetPhysicsLinearVelocity(ShotDirection * AttackLinearVelocity);	//施加力
+			if (Hit.GetComponent()->IsSimulatingPhysics()) { Hit.GetComponent()->AddImpulse(ShotDirection * AttackLinearVelocity,NAME_None,true); }//施加力
 			
 			
-		}
-		if (DebugWeaponDrawing > 0)
-		{
-			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Blue, false, 2.0f);
 		}
 		
 		/////////////////////////////////////////////////////////////   子弹碰撞物理材质响应
@@ -129,7 +127,11 @@ void AWeaponGun::OnAttack()	//开火
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
 
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAttackFire", true);
+		if (DebugWeaponDrawing > 0)
+		{
+			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Blue, false, 2.0f);
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAttackFire", true);
+		}
 	}
 	else
 	{
@@ -140,7 +142,12 @@ void AWeaponGun::OnAttack()	//开火
 void AWeaponGun::OffAttack()	//停火
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_WeaponFireTimeHand);
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OffAttackFire", true);
+
+
+	if (DebugWeaponDrawing > 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OffAttackFire", true);
+	}
 }
 
 void AWeaponGun::PlayWeaponParticle()
@@ -150,7 +157,7 @@ void AWeaponGun::PlayWeaponParticle()
 	if (FireShellEjectionParticle) { UGameplayStatics::SpawnEmitterAttached(FireShellEjectionParticle, WeaponSkletalMesh, ShellEjectionName); }
 	if (FireSound) { UGameplayStatics::SpawnSoundAttached(FireSound, this->GetRootComponent()); }
 
-	APawn * MyOwner = Cast<APawn>(GetOwner());
+	APawn * MyOwner = Cast<APawn>(GetOwner());		//相机抖动
 	if (MyOwner)
 	{
 		APlayerController * PC = Cast<APlayerController>(MyOwner->GetController());

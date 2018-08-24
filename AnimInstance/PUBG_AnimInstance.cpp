@@ -22,7 +22,7 @@ void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		//¼ÆËãÃé×¼Æ«ÒÆ
 		FRotator DeltaRotation = ControlRotation - ActorRotation;
 		Yaw = FRotator::NormalizeAxis(DeltaRotation.Yaw);
-		Pitch = FRotator::NormalizeAxis(DeltaRotation.Pitch) * 1.5f;
+		Pitch = FRotator::NormalizeAxis(DeltaRotation.Pitch) * 2.0f;
 
 		//¼ì²âÌøÔ¾
 		IsJump = CurrentPlayerPawn->GetMovementComponent()->IsFalling();

@@ -90,7 +90,7 @@ public:
 		int32 GunTrenchNum;	//要生成的插槽数量
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TrenchArray")
-		TArray<FTrench> GunTrenchArray;	//插槽数组
+		TArray<FTrench> GunTrenchArray;	//插槽数组p-[=
 
 	UFUNCTION(BlueprintCallable)
 		virtual bool AddWeapon_Int_Implementation(class AWeaponBase * Gun);	//实现添加武器接口
