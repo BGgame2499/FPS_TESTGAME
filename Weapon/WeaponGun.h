@@ -8,9 +8,21 @@
 
 class UDamageType;
 class UCameraShake;
-/**
- * 
- */
+
+USTRUCT()
+struct FHitScanTrace
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+		TEnumAsByte< EPhysicalSurface> SurfaceType;
+
+	UPROPERTY()
+	FVector_NetQuantize TraceTo;
+
+};
+
 UCLASS()
 class FPS_TESTGAME_API AWeaponGun : public AWeaponBase
 {
@@ -80,6 +92,17 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 		UParticleSystem * GetImpactParticle(EPhysicalSurface  SurfaceType);
+
+	void PlayImpactEffects(EPhysicalSurface  SurfaceType,FVector ImpactPoint);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerOnAttack();
+
+	UPROPERTY(ReplicatedUsing = OnRep_HitScanTrace)
+		FHitScanTrace HitScanTrace;
+
+	UFUNCTION()
+		void OnRep_HitScanTrace();
 
 private:
 protected:

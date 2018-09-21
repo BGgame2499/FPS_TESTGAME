@@ -20,7 +20,7 @@ void ARandomSpawnWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentGameMode = Cast<AFPS_TESTGAMEGameModeBase>(GetWorld()->GetAuthGameMode());
-	if (!IsRandom)
+	if (!IsRandom && Role == ROLE_Authority)
 	{
 		SpawnWeaponClass(WeaponClass, GetTransform());
 	}

@@ -36,6 +36,7 @@ AWeaponBase::AWeaponBase()
 	WeaponHitSphere->SetupAttachment(GetRootComponent());
 	WeaponHitSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::BeginHit);
 
+	SetReplicates(true);
 
 	//WeaponBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponBox"));
 	//WeaponBox->SetSimulatePhysics(true);

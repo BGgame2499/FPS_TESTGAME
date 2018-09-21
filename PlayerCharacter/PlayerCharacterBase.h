@@ -70,19 +70,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
 		TSubclassOf<class AWeaponGun > DefaultWeaponClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerWeapone")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerWeapone")
 		class AWeaponBase * CurrentHandWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerState")
 		PlayerWeaponStateEnum CurrentWeaponAnimStateEnum;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Replicated, Category = "PlayerState")
 		CurrentHandWeaponStateEnum CurrentHandWeaponState;
 
 	UFUNCTION(BlueprintCallable)
 		virtual void UpdateWeapon();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,Server, Reliable, WithValidation)
 		virtual void TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum);
 
 

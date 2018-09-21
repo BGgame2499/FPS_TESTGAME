@@ -6,6 +6,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "FPS_TESTGAME.h"
 #include "TimerManager.h"
+#include "Net/UnrealNetwork.h"
 #include "Engine.h"
 
 static int32 DebugWeaponDrawing = 0;
@@ -30,6 +31,9 @@ AWeaponGun::AWeaponGun()
 	RateOfFire = 400.0f;   //默认每分钟的开火速率
 
 	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
+
+	NetUpdateFrequency = 66.0f;		//设置武器网络更新频率
+	MinNetUpdateFrequency = 33.0f;
 }
 
 void AWeaponGun::BeginPlay()
@@ -62,6 +66,12 @@ void AWeaponGun::Tick(float DeltaTime)
 
 void AWeaponGun::OnAttack()	//开火
 {
+	if (Role < ROLE_Authority)
+	{
+		ServerOnAttack();
+	}
+
+
 	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
 
 	APlayerCharacterBase * MyOwner = Cast<APlayerCharacterBase>(GetOwner());
@@ -97,33 +107,47 @@ void AWeaponGun::OnAttack()	//开火
 		TraceParams.AddIgnoredActor(this);
 		TraceParams.AddIgnoredActor(MyOwner);
 		
+		FVector TraceEndPoint = TraceEnd;
+
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
+
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, TraceParams))
 		{
 			AActor * HitActor = Hit.GetActor();
 
-			UGameplayStatics::ApplyPointDamage(HitActor, AttackHP_Value, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);	//施加伤害
+			/////////////////////////////////////////////////////////////   子弹碰撞物理材质响应
+
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+			float ActualDemage = AttackHP_Value;
+			if (SurfaceType == SurfaceType2)
+			{
+				ActualDemage *= 4.0;
+			}
+
+
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDemage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);	//施加伤害
 			if (Hit.GetComponent()->IsSimulatingPhysics()) { Hit.GetComponent()->AddImpulse(ShotDirection * AttackLinearVelocity,NAME_None,true); }//施加力
-			
+
+
+			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);	//播放击中特效
+
+			/////////////////////////////////////////////////////////////////
+			TraceEndPoint = Hit.ImpactPoint;
 			
 		}
 		
-		/////////////////////////////////////////////////////////////   子弹碰撞物理材质响应
-		EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-		
-		UParticleSystem * ImpactParticle = GetImpactParticle(SurfaceType);
-
-		if (ImpactParticle)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-		}
-
-		/////////////////////////////////////////////////////////////////
 
 		//GetWorld()->SpawnActor<AActor>(BulletActorClass, BulletSpawnLocation, EyeRotation);
 
 		PlayWeaponParticle();	//播放各个武器特效
 
+		if (Role == ROLE_Authority)		//
+		{
+			HitScanTrace.TraceTo = TraceEndPoint;
+			HitScanTrace.SurfaceType = SurfaceType;
+		}
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
 
@@ -137,6 +161,15 @@ void AWeaponGun::OnAttack()	//开火
 	{
 
 	}
+}
+
+void AWeaponGun::ServerOnAttack_Implementation()
+{
+	OnAttack();
+}
+bool AWeaponGun::ServerOnAttack_Validate()
+{
+	return true;
 }
 
 void AWeaponGun::OffAttack()	//停火
@@ -336,4 +369,37 @@ UParticleSystem * AWeaponGun::GetImpactParticle(EPhysicalSurface  SurfaceType)
 	}
 
 	return ImpactParticle;
+}
+
+void AWeaponGun::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+{
+	UParticleSystem * ImpactParticle = GetImpactParticle(SurfaceType);
+
+	if (ImpactParticle)
+	{
+		FVector MuzzleLocation = WeaponSkletalMesh->GetSocketLocation(CurrentMuzzleName);
+
+		FVector ShotDirection = ImpactPoint - MuzzleLocation;
+		ShotDirection.Normalize();
+
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle,ImpactPoint, ShotDirection.Rotation());
+	}
+}
+
+void AWeaponGun::OnRep_HitScanTrace()
+{
+
+	PlayWeaponParticle();	//播放各个武器特效
+
+
+	PlayImpactEffects(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
+}
+
+void AWeaponGun::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const	//成员复制
+{
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AWeaponGun, HitScanTrace,COND_SkipOwner); //COND_SkipOwner防止客户端将参数复制到服务器后服务器再次通知此客户端（此参数回调的特效函数已经执行过了 避免服务器通知二次执行）
 }

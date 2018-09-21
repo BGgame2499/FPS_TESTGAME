@@ -9,11 +9,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Weapon/WeaponFire.h"
+#include "Weapon/WeaponBomb.h"
 #include "Weapon/WeaponGun.h"
 #include "Weapon/WeaponBase.h"
 #include "Components/InputComponent.h"
 #include "GameMode/FPS_TESTGAMEGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 #include "Engine.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
@@ -70,7 +71,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> FindAimSpringCurve(TEXT("/Game/PUBG_Assent/Animation/AimSpringCurve")); //加载AimSpringCurve
 		AimSpringCurve = FindAimSpringCurve.Object;
 
-
+		SetReplicates(true);
 }
 
 void APlayerCharacterBase::BeginPlay()
@@ -374,7 +375,7 @@ void APlayerCharacterBase::ThrowWeapon()
 
 }
 
-void APlayerCharacterBase::TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum)
+void APlayerCharacterBase::TakeWeapon_Implementation(CurrentHandWeaponStateEnum HandWeaponEnum)
 {
 	if (CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
 	{
@@ -406,6 +407,10 @@ void APlayerCharacterBase::TakeWeapon(CurrentHandWeaponStateEnum HandWeaponEnum)
 		}
 	}
 
+}
+bool APlayerCharacterBase::TakeWeapon_Validate(CurrentHandWeaponStateEnum HandWeaponEnum)
+{
+	return true;
 }
 
 void APlayerCharacterBase::UpdateWeapon()
@@ -472,3 +477,12 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 	return nullptr;
 }
 
+void APlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const	//成员复制
+{
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacterBase, CurrentHandWeapon);
+	DOREPLIFETIME(APlayerCharacterBase, CurrentWeaponAnimStateEnum);
+	DOREPLIFETIME(APlayerCharacterBase, CurrentHandWeaponState);
+}
