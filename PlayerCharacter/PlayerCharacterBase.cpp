@@ -16,6 +16,7 @@
 #include "GameMode/FPS_TESTGAMEGameModeBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine.h"
+#include "AnimState/PawnAnimState/PawnAnimStateBase.h"
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,7 +27,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 	bDied = false;
 	bAim = false;
 	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
-	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;	//武器动画枚举
+	CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::GunComplete;	//武器动画枚举
 	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
 	MovementComp = GetCharacterMovement();
 
@@ -45,8 +46,9 @@ APlayerCharacterBase::APlayerCharacterBase()
 	//PlayerMeshStatic = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMeshStatic"));
 	//PlayerMeshStatic->SetupAttachment(GetRootComponent());
 
+	//PawnAnimState = &Idleing;
 
-
+	//PawnAnimState->PawnAnimState(*this);
 
 	CameraBoomComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoomComp"));
 	CameraBoomComp->SetupAttachment(GetRootComponent());
@@ -72,6 +74,8 @@ APlayerCharacterBase::APlayerCharacterBase()
 		AimSpringCurve = FindAimSpringCurve.Object;
 
 		SetReplicates(true);
+		SetReplicateMovement(true);
+		GetMesh()->SetIsReplicated(true);
 }
 
 void APlayerCharacterBase::BeginPlay()
@@ -125,23 +129,31 @@ void APlayerCharacterBase::OnHealthChanged(UHealthComponent * HealthComponent, f
 {
 	if (Health <= 0.0f && !bDied)	//检查并执行死亡函数
 	{
-		GetMovementComponent()->StopMovementImmediately();
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		DetachFromControllerPendingDestroy();
-		//SetLifeSpan(5.0f);  //设置自动销毁时间
-		GetMesh()->SetSimulatePhysics(true);
-
-		/*for (int32 index = 0; index < GunTrenchArray.Num(); index++)
-		{
-			if (GunTrenchArray[index].IsWeapon())
-			{
-				GunTrenchArray[index].GetWeapon()->SetCurrentMeshCollision(false);
-			}
-		}*/
+		PlayDieSet();
 
 		bDied = true;
 
 	}
+}
+void APlayerCharacterBase::PlayDieSet_Implementation()
+{
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DetachFromControllerPendingDestroy();
+	//SetLifeSpan(5.0f);  //设置自动销毁时间
+	GetMesh()->SetSimulatePhysics(true);
+
+	/*for (int32 index = 0; index < GunTrenchArray.Num(); index++)
+	{
+	if (GunTrenchArray[index].IsWeapon())
+	{
+	GunTrenchArray[index].GetWeapon()->SetCurrentMeshCollision(false);
+	}
+	}*/
+}
+bool APlayerCharacterBase::PlayDieSet_Validate()
+{
+	return true;
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -150,6 +162,20 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 
 	TurnBackTimeLine.TickTimeline(DeltaTime); //tick中绑定TimeLine
 	AimSpringTimeLine.TickTimeline(DeltaTime);
+
+	if (bDied)
+	{
+		
+	}
+
+	if (CurrentHandWeapon)
+	{
+		bUseControllerRotationYaw = true;
+	}
+	else 
+	{
+		bUseControllerRotationYaw = false;
+	}
 
 
 }
@@ -163,7 +189,7 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacterBase::SprintReleased);
 
 	PlayerInputComponent->BindAction("Freelook", IE_Pressed, this, &APlayerCharacterBase::FreelookPressed);
-	PlayerInputComponent->BindAction("Freelook", IE_Released, this, &APlayerCharacterBase::FreelookReleased);
+	PlayerInputComponent->BindAction("Freelook", IE_Released, this, &APlayerCharacterBase::FreelookReleased); 
 
 	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &APlayerCharacterBase::WalkPressed);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &APlayerCharacterBase::WalkReleased);
@@ -219,7 +245,7 @@ void APlayerCharacterBase::UpdateSpringLength(float Value)
 //////////////////////////////////////////////////////////////////////////开火控制
 void APlayerCharacterBase::AttackOn()
 {
-	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
+	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponAnimStateEnum::GunComplete)
 	{
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, true, 0.0f);
 	}
@@ -230,7 +256,7 @@ void APlayerCharacterBase::AttackOn()
 
 void APlayerCharacterBase::AttackOff()
 {
-	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
+	if (CurrentHandWeapon && CurrentWeaponAnimStateEnum == PlayerWeaponAnimStateEnum::GunComplete)
 	{
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
 	}
@@ -306,7 +332,6 @@ void APlayerCharacterBase::FreelookReleased()
 void APlayerCharacterBase::AimPressed()
 {
 
-	bUseControllerRotationYaw = true;
 	AimSpringTimeLine.PlayFromStart();
 	bAim = true;
 
@@ -319,7 +344,6 @@ void APlayerCharacterBase::AimPressed()
 void APlayerCharacterBase::AimReleased()
 {
 
-	bUseControllerRotationYaw = false;
 	AimSpringTimeLine.PlayFromStart();	//倒叙播放AimSpringTimeLine
 
 	bAim = false;
@@ -377,7 +401,7 @@ void APlayerCharacterBase::ThrowWeapon()
 
 void APlayerCharacterBase::TakeWeapon_Implementation(CurrentHandWeaponStateEnum HandWeaponEnum)
 {
-	if (CurrentWeaponAnimStateEnum == PlayerWeaponStateEnum::GunComplete)
+	if (CurrentWeaponAnimStateEnum == PlayerWeaponAnimStateEnum::GunComplete)
 	{
 		switch (HandWeaponEnum)
 		{
@@ -385,21 +409,21 @@ void APlayerCharacterBase::TakeWeapon_Implementation(CurrentHandWeaponStateEnum 
 			if (GunTrenchArray[0].IsWeapon())
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
-				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+				CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::Take_Gun;
 			}
 			break;
 		case CurrentHandWeaponStateEnum::Weapon_2:
 			if (GunTrenchArray[1].IsWeapon())
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
-				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Take_Gun;
+				CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::Take_Gun;
 			}
 			break;
 		case CurrentHandWeaponStateEnum::Hand:
 			if (CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
 			{
 				CurrentHandWeaponState = HandWeaponEnum;
-				CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::Down_Gun;
+				CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::Down_Gun;
 			}
 			break;
 		default:
@@ -433,7 +457,7 @@ void APlayerCharacterBase::UpdateWeapon()
 	default:
 		break;
 	}
-	CurrentWeaponAnimStateEnum = PlayerWeaponStateEnum::GunComplete;
+	CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::GunComplete;
 }
 
 
@@ -485,4 +509,5 @@ void APlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(APlayerCharacterBase, CurrentHandWeapon);
 	DOREPLIFETIME(APlayerCharacterBase, CurrentWeaponAnimStateEnum);
 	DOREPLIFETIME(APlayerCharacterBase, CurrentHandWeaponState);
+	DOREPLIFETIME(APlayerCharacterBase, bDied);
 }

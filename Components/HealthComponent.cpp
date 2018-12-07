@@ -1,5 +1,6 @@
 
 #include "HealthComponent.h"
+#include "Net/UnrealNetwork.h"	
 
 
 UHealthComponent::UHealthComponent()
@@ -8,6 +9,8 @@ UHealthComponent::UHealthComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	DefaultHealth = 100.0f;
+
+	SetIsReplicated(true);
 }
 
 
@@ -15,11 +18,15 @@ void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AActor * MyOwner = GetOwner();
-	if (MyOwner)
+	if (GetOwnerRole() == ROLE_Authority)	//如果当前位置是服务器  Only hook if we serve
 	{
-		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::HandleTakeAnyDamage);
+		AActor * MyOwner = GetOwner();
+		if (MyOwner)
+		{
+			MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::HandleTakeAnyDamage);	//Bind the Actor for TakeAnyDamage event
+		}
 	}
+	
 	Health = DefaultHealth;
 }
 
@@ -43,3 +50,10 @@ void UHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage, 
 	UE_LOG(LogTemp, Log, TEXT("Health Changed : %s"), *FString::SanitizeFloat(Health));
 }
 
+void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const	//成员复制
+{
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UHealthComponent, Health); //COND_SkipOwner防止客户端将参数复制到服务器后服务器再次通知此客户端（此参数回调的特效函数已经执行过了 避免服务器通知二次执行）
+}

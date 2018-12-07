@@ -143,7 +143,7 @@ void AWeaponGun::OnAttack()	//开火
 
 		PlayWeaponParticle();	//播放各个武器特效
 
-		if (Role == ROLE_Authority)		//
+		if (Role == ROLE_Authority)		//记录当前武器击中位置和材质类型
 		{
 			HitScanTrace.TraceTo = TraceEndPoint;
 			HitScanTrace.SurfaceType = SurfaceType;

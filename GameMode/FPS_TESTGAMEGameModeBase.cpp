@@ -18,8 +18,9 @@ void AFPS_TESTGAMEGameModeBase::CompleteMission(APawn * InstigatorPawn)
 	{
 		InstigatorPawn->DisableInput(nullptr);
 	}
+	//UGameInstance* MyInstance = GetGameState<AFPS_TESTGAMEGameModeBase>()->GetGameInstance();
+	//GetGameInstance();
 	
-
 }
 
 FString AFPS_TESTGAMEGameModeBase::InitNewPlayer(APlayerController * NewPlayerController, const FUniqueNetIdRepl & UniqueId, const FString & Options, const FString & Portal)

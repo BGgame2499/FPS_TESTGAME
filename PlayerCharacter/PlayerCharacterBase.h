@@ -27,6 +27,7 @@ class FPS_TESTGAME_API APlayerCharacterBase : public ACharacter ,public II_AddWe
 public:
 	APlayerCharacterBase();
 
+	//class UPawnAnimStateBase * PawnAnimState;
 
 	//UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	//UStaticMeshComponent * PlayerMeshStatic;
@@ -50,7 +51,7 @@ public:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
 		//PlayerStateEnum  CurrentStateEnum;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "PlayerState")
+	UPROPERTY(Replicated,EditAnywhere,BlueprintReadWrite,Category = "PlayerState")
 		bool bDied;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerState")
@@ -74,7 +75,7 @@ public:
 		class AWeaponBase * CurrentHandWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerState")
-		PlayerWeaponStateEnum CurrentWeaponAnimStateEnum;
+		PlayerWeaponAnimStateEnum CurrentWeaponAnimStateEnum;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Replicated, Category = "PlayerState")
 		CurrentHandWeaponStateEnum CurrentHandWeaponState;
@@ -139,6 +140,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "CurrentGameModeBase")
 		class AFPS_TESTGAMEGameModeBase * CurrentGameModeBase;
+
+
+	///////////////////////////////////////////////////////////////////////////////////
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void PlayDieSet();
 
 private:
 

@@ -24,7 +24,7 @@ enum class PlayerStateEnum : uint8
 
 
 UENUM(Blueprintable, BlueprintType)
-enum class PlayerWeaponStateEnum : uint8
+enum class PlayerWeaponAnimStateEnum : uint8
 {
 	Take_Gun,
 	Down_Gun,
