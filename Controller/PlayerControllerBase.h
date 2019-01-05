@@ -23,6 +23,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Input")
 		bool isIgnoreInput;
 
+	UPROPERTY(BlueprintReadWrite)
+		class UPUBG_AnimInstance * PlayPawnAnim;
 	//class UInputComponent * PlayerInputComp;
 
 public:

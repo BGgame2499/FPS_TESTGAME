@@ -2,6 +2,7 @@
 #include "PlayerControllerBase.h"
 #include "PlayerCharacter/PlayerCharacterBase.h"
 #include "Components/InputComponent.h"
+#include "AnimInstance/PUBG_AnimInstance.h"
 #include "Engine.h"
 
 APlayerControllerBase::APlayerControllerBase()
@@ -19,6 +20,8 @@ void APlayerControllerBase::BeginPlay()
 	Super::BeginPlay();
 
 	PlayPawn = Cast<APlayerCharacterBase>(GetWorld()->GetFirstPlayerController()->GetPawn());	//获取到当前PlayPawn
+	
+	PlayPawnAnim = Cast<UPUBG_AnimInstance>(PlayPawn->GetMesh()->GetAnimInstance());
 	SetIsIgnoreInput(isIgnoreInput);
 }
 

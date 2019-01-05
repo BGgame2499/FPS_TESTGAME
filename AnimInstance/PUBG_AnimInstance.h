@@ -17,6 +17,15 @@ class FPS_TESTGAME_API UPUBG_AnimInstance : public UAnimInstance
 public:
 	void NativeUpdateAnimation(float DeltaSeconds)override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PUBG")
+		bool isTurnLeft;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PUBG")
+		bool isTurnRight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PUBG")
+		bool isPunch;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterBase")
@@ -44,7 +53,9 @@ protected:
 		bool IsAim;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
-		bool isWeaponAttackFire;
+		bool isWeaponAttackFire; 
+	
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void AnimNotify_TakeWeaponGun(UAnimNotify * Notify);

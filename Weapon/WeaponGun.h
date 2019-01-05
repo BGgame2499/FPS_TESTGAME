@@ -8,6 +8,7 @@
 
 class UDamageType;
 class UCameraShake;
+class UMaterialInterface;
 
 USTRUCT()
 struct FHitScanTrace
@@ -64,6 +65,10 @@ public:
 		TArray<UParticleSystem *> ImpactParticleArray;		//击中特效数组
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSound")
 		USoundCue * FireSound;		//开火音效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Decal")
+		TArray<UMaterialInterface *> ImpactDecalArray;	//击中单孔贴花数组
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Decal")
+		UMaterialInterface * DefaultImpactDecal;		//击中单孔贴花
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponFireShake")
 		TSubclassOf<UCameraShake> FireCameraShake;
 

@@ -223,21 +223,19 @@ bool AWeaponGun::Fire_Int_Implementation(bool isFire, float Time)
 
 
 }
-UParticleSystem * AWeaponGun::GetImpactParticle(EPhysicalSurface  SurfaceType)
+UParticleSystem * AWeaponGun::GetImpactParticle(EPhysicalSurface  SurfaceType)	//解析表面材质
 {
 	UParticleSystem * ImpactParticle = nullptr;
-
+	int32 Index = 0;
 	switch (SurfaceType)
 	{
 	case SurfaceType_Default:
-
-		ImpactParticle = DefaultImpactEffect;
 		break;
 	case SurfaceType1:	//击中肉体
-		ImpactParticle = ImpactParticleArray.IsValidIndex(0) ? ImpactParticleArray[0] : nullptr;
+		Index = 1;
 		break;
 	case SurfaceType2:	//击中头部
-		ImpactParticle = ImpactParticleArray.IsValidIndex(1) ? ImpactParticleArray[1] : nullptr;
+		Index = 2;
 		break;
 	case SurfaceType3:
 		break;
@@ -364,9 +362,11 @@ UParticleSystem * AWeaponGun::GetImpactParticle(EPhysicalSurface  SurfaceType)
 		break;
 		}
 	default:
-		ImpactParticle = DefaultImpactEffect;
 		break;
 	}
+
+	ImpactParticle = ImpactParticleArray.IsValidIndex(Index) ? ImpactParticleArray[Index] : DefaultImpactEffect;	//查找并得到特效
+	DefaultImpactDecal = ImpactDecalArray.IsValidIndex(Index) ? ImpactDecalArray[Index] : ImpactDecalArray[0];		//得到弹孔印花
 
 	return ImpactParticle;
 }
@@ -381,9 +381,17 @@ void AWeaponGun::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactP
 
 		FVector ShotDirection = ImpactPoint - MuzzleLocation;
 		ShotDirection.Normalize();
+		//FRotator ParticleRotator = FRotator(ShotDirection.Rotation().Yaw, ShotDirection.Rotation().Pitch, ShotDirection.Rotation().Roll);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle,ImpactPoint, ShotDirection.Rotation());		//创建击中特效
 
-
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle,ImpactPoint, ShotDirection.Rotation());
+		UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(DefaultImpactDecal, this);	//得到印花材质并创建动态材质
+		if (DynMaterial)
+		{
+			int32 RandomNum = FMath::RandRange(1, 4);
+			DynMaterial->SetScalarParameterValue("Frame", RandomNum);	//设置材质变量
+			FVector DecalSize = FVector(5, 5, 5) * FMath::FRandRange(0.75, 1.9);
+			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), DynMaterial, DecalSize, ImpactPoint, ShotDirection.Rotation());	//创建印花
+		}
 	}
 }
 

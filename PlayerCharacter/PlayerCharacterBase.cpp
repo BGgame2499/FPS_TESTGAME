@@ -23,13 +23,14 @@ APlayerCharacterBase::APlayerCharacterBase()
 	GunTrenchNum = 2;	//默认生成2个武器槽位
 	GunTrenchArray.SetNum(GunTrenchNum);
 	GunTrenchArray[0].SetTrenchName("Weapon_A");
-	GunTrenchArray[1].SetTrenchName("Weapon_B");
+	//GunTrenchArray[1].SetTrenchName("Weapon_B");
 	bDied = false;
 	bAim = false;
 	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
 	CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::GunComplete;	//武器动画枚举
 	CurrentHandWeaponState = CurrentHandWeaponStateEnum::Hand;	//当前持有武器枚举
 	MovementComp = GetCharacterMovement();
+	bUseControllerRotationYaw = true;
 
 	Wepone_Hand_name = "HandGun_R";
 
@@ -56,6 +57,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 	CameraBoomComp->TargetOffset = FVector(0, 0, 55);
 	CameraBoomComp->bUsePawnControlRotation = true;	//允许跟随角色旋转
 	CameraBoomComp->bEnableCameraRotationLag = true;
+
 
 	ThrowWeaponScene = CreateDefaultSubobject<USceneComponent>(TEXT("ThrowWeaponScene"));
 	ThrowWeaponScene->SetupAttachment(GetRootComponent());
@@ -97,7 +99,7 @@ void APlayerCharacterBase::BeginPlay()
 		FOnTimelineEventStatic TurnBackTimelineFinishedCallback;	//绑定TimeLine播放完后调用的函数
 		 
 		TurnBackTimelineCallBack.BindUFunction(this, TEXT("UpdateControllerRotation"));//第一个调用函数对象 第二个为调用函数名
-		TurnBackTimelineFinishedCallback.BindLambda([this]() {bUseControllerRotationYaw = false; });	//结束后执行Lambda表达式 将bUseControllerRotationYaw恢复为true
+		TurnBackTimelineFinishedCallback.BindLambda([this]() {bUseControllerRotationYaw = true; });	//结束后执行Lambda表达式 将bUseControllerRotationYaw恢复为true
 
 		TurnBackTimeLine.AddInterpFloat(TurnBackCurve, TurnBackTimelineCallBack);	
 		TurnBackTimeLine.SetTimelineFinishedFunc(TurnBackTimelineFinishedCallback);	//设置TimeLine播放完后调用TurnBackTimelineFinishedCallback
@@ -168,14 +170,14 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 		
 	}
 
-	if (CurrentHandWeapon)
+	/*if (bAim || CurrentHandWeaponState != CurrentHandWeaponStateEnum::Hand)
 	{
 		bUseControllerRotationYaw = true;
 	}
-	else 
+	else
 	{
 		bUseControllerRotationYaw = false;
-	}
+	}*/
 
 
 }
@@ -250,7 +252,7 @@ void APlayerCharacterBase::AttackOn()
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, true, 0.0f);
 	}
 	
-	bUseControllerRotationYaw = true;
+	//bUseControllerRotationYaw = true;
 	
 }
 
@@ -261,10 +263,10 @@ void APlayerCharacterBase::AttackOff()
 		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
 	}
 
-	if (!bAim)
-	{
-		bUseControllerRotationYaw = false;
-	}
+// 	if (!bAim)
+// 	{
+// 		bUseControllerRotationYaw = false;
+// 	}
 }
 
 //////////////////////////////////////////////////////////////////////////行走控制
@@ -430,7 +432,7 @@ void APlayerCharacterBase::TakeWeapon_Implementation(CurrentHandWeaponStateEnum 
 			break;
 		}
 	}
-
+	UpdateWeapon();
 }
 bool APlayerCharacterBase::TakeWeapon_Validate(CurrentHandWeaponStateEnum HandWeaponEnum)
 {
