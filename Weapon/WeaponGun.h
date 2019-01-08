@@ -52,6 +52,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")	//武器攻击物理力度
 		float AttackLinearVelocity;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		FVector2D RandomRecoilPith;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		FVector2D RandomRecoilYaw;
 	////////////////////////////////////////////////////武器特效
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
 		UParticleSystem * FireParticle;		//开火特效
@@ -108,6 +112,7 @@ public:
 
 	UFUNCTION()
 		void OnRep_HitScanTrace();
+
 
 private:
 protected:

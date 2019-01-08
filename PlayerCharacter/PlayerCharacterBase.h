@@ -169,6 +169,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackOff();
 
+	UFUNCTION(BlueprintNativeEvent)
+		void RecoilRifleFire(FVector2D RandomRecoilPith, FVector2D RandomRecoilYaw);
 	UFUNCTION(BlueprintCallable)
 		void SprintPressed();
 	UFUNCTION(BlueprintCallable)

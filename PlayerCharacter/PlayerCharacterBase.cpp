@@ -503,6 +503,10 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 	return nullptr;
 }
 
+void APlayerCharacterBase::RecoilRifleFire_Implementation(FVector2D RandomRecoilPith, FVector2D RandomRecoilYaw)
+{
+}
+
 void APlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const	//≥…‘±∏¥÷∆
 {
 

@@ -24,10 +24,13 @@ AWeaponGun::AWeaponGun()
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
 	//WeaponSkletalMesh->SetSimulatePhysics(true);
 	WeaponHitSphere->SetupAttachment(WeaponSkletalMesh);
+	WeaponSkletalMesh->SetCanEverAffectNavigation(false);
 
 	GunMuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
 	AttackLinearVelocity = 1000.0f;
 
+	RandomRecoilPith = FVector2D(0.9,1.1);
+	RandomRecoilYaw = FVector2D(-1.0,1.0);
 	RateOfFire = 400.0f;   //默认每分钟的开火速率
 
 	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
@@ -127,8 +130,8 @@ void AWeaponGun::OnAttack()	//开火
 			}
 
 
+			if (Hit.GetComponent()->IsSimulatingPhysics()) { Hit.GetComponent()->AddImpulse(ShotDirection * AttackLinearVelocity, NAME_None, true); }//施加力
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDemage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);	//施加伤害
-			if (Hit.GetComponent()->IsSimulatingPhysics()) { Hit.GetComponent()->AddImpulse(ShotDirection * AttackLinearVelocity,NAME_None,true); }//施加力
 
 
 			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);	//播放击中特效
@@ -150,6 +153,8 @@ void AWeaponGun::OnAttack()	//开火
 		}
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
+
+		MyOwner->RecoilRifleFire(RandomRecoilPith, RandomRecoilYaw);	//设置后坐力
 
 		if (DebugWeaponDrawing > 0)
 		{
@@ -189,7 +194,6 @@ void AWeaponGun::PlayWeaponParticle()
 	if (FireMuzzleSmokeParticle) { UGameplayStatics::SpawnEmitterAttached(FireMuzzleSmokeParticle, WeaponSkletalMesh, CurrentMuzzleName); }
 	if (FireShellEjectionParticle) { UGameplayStatics::SpawnEmitterAttached(FireShellEjectionParticle, WeaponSkletalMesh, ShellEjectionName); }
 	if (FireSound) { UGameplayStatics::SpawnSoundAttached(FireSound, this->GetRootComponent()); }
-
 	APawn * MyOwner = Cast<APawn>(GetOwner());		//相机抖动
 	if (MyOwner)
 	{
