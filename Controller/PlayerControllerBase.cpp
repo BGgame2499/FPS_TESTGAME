@@ -19,9 +19,11 @@ void APlayerControllerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayPawn = Cast<APlayerCharacterBase>(GetWorld()->GetFirstPlayerController()->GetPawn());	//获取到当前PlayPawn
-	
-	PlayPawnAnim = Cast<UPUBG_AnimInstance>(PlayPawn->GetMesh()->GetAnimInstance());
+	//if (Role == ROLE_Authority)
+	{
+		PlayPawn = Cast<APlayerCharacterBase>(GetWorld()->GetFirstPlayerController()->GetPawn());	//获取到当前PlayPawn
+		PlayPawnAnim = Cast<UPUBG_AnimInstance>(PlayPawn->GetMesh()->GetAnimInstance());
+	}
 	SetIsIgnoreInput(isIgnoreInput);
 }
 

@@ -73,7 +73,7 @@ public:
 		TArray<UMaterialInterface *> ImpactDecalArray;	//击中单孔贴花数组
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Decal")
 		UMaterialInterface * DefaultImpactDecal;		//击中单孔贴花
-	UPROPERTY(EditDefaultsOnly, Category = "WeaponFireShake")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponFireShake")
 		TSubclassOf<UCameraShake> FireCameraShake;
 
 	////////////////////////////////////////////////////武器参数
@@ -86,7 +86,8 @@ public:
 
 	FTimerHandle  TimerHandle_WeaponFireTimeHand;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ContinuousFire")
+	bool  bContinuousFire;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BulletFireValue")

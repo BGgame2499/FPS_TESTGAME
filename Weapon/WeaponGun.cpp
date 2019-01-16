@@ -24,7 +24,9 @@ AWeaponGun::AWeaponGun()
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
 	//WeaponSkletalMesh->SetSimulatePhysics(true);
 	WeaponHitSphere->SetupAttachment(WeaponSkletalMesh);
+	SetRootComponent(WeaponSkletalMesh);
 	WeaponSkletalMesh->SetCanEverAffectNavigation(false);
+	//WeaponSkletalMesh->MoveComponent(WeaponSkletalMesh->GetComponentLocation(), WeaponSkletalMesh->GetComponentRotation(), false, nullptr, MOVECOMP_IgnoreBases, ETeleportType::TeleportPhysics);
 
 	GunMuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
 	AttackLinearVelocity = 1000.0f;
@@ -37,6 +39,8 @@ AWeaponGun::AWeaponGun()
 
 	NetUpdateFrequency = 66.0f;		//设置武器网络更新频率
 	MinNetUpdateFrequency = 33.0f;
+
+	bContinuousFire = true;
 }
 
 void AWeaponGun::BeginPlay()
@@ -192,7 +196,7 @@ void AWeaponGun::PlayWeaponParticle()
 {
 	if (FireParticle) { UGameplayStatics::SpawnEmitterAttached(FireParticle, WeaponSkletalMesh, CurrentMuzzleName); }
 	if (FireMuzzleSmokeParticle) { UGameplayStatics::SpawnEmitterAttached(FireMuzzleSmokeParticle, WeaponSkletalMesh, CurrentMuzzleName); }
-	if (FireShellEjectionParticle) { UGameplayStatics::SpawnEmitterAttached(FireShellEjectionParticle, WeaponSkletalMesh, ShellEjectionName); }
+	if (FireShellEjectionParticle) {UGameplayStatics::SpawnEmitterAttached(FireShellEjectionParticle, WeaponSkletalMesh, ShellEjectionName); }
 	if (FireSound) { UGameplayStatics::SpawnSoundAttached(FireSound, this->GetRootComponent()); }
 	APawn * MyOwner = Cast<APawn>(GetOwner());		//相机抖动
 	if (MyOwner)
@@ -211,9 +215,17 @@ bool AWeaponGun::Fire_Int_Implementation(bool isFire, float Time)
 		if (IsCurrentBullet())
 		{
 			isAttackFire = true;
-
 			float  FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);		//计算首次开火的延时（防止玩家连续点击）
-			GetWorldTimerManager().SetTimer(TimerHandle_WeaponFireTimeHand,this,&AWeaponGun::OnAttack, TimeBetweenShots, true, FirstDelay);
+
+			if (bContinuousFire)	//如果是自动武器则开启连续射击
+			{
+				GetWorldTimerManager().SetTimer(TimerHandle_WeaponFireTimeHand, this, &AWeaponGun::OnAttack, TimeBetweenShots, true, FirstDelay);
+			}
+			else
+			{
+				GetWorldTimerManager().SetTimer(TimerHandle_WeaponFireTimeHand, this, &AWeaponGun::OnAttack, TimeBetweenShots, false, FirstDelay);
+				isAttackFire = false;
+			}
 
 		}
 	}

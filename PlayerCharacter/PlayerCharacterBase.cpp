@@ -476,6 +476,7 @@ bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 		{
 			Gun->Execute_Fire_Int(Gun, false, 0.0f);
 			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
+			Gun->SetCurrentMeshCollision(false);
 			Gun->SetOwner(this);
 			return true;
 		}

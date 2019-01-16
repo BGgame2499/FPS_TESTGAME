@@ -34,6 +34,9 @@ AWeaponBase::AWeaponBase()
 	WeaponHitSphere = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponHitSphere"));
 	WeaponHitSphere->SetSphereRadius(55.0f);
 	WeaponHitSphere->SetupAttachment(GetRootComponent());
+	WeaponHitSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WeaponHitSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WeaponHitSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	WeaponHitSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::BeginHit);
 
 	SetReplicates(true);

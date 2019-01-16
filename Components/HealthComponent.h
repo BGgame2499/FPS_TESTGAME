@@ -19,7 +19,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(Replicated,BlueprintReadOnly, Category = "HealthComponent")
+	UPROPERTY(ReplicatedUsing = OnRep_Health,BlueprintReadOnly, Category = "HealthComponent")
 		float Health;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealthComponent")
 		float DefaultHealth;
@@ -29,8 +29,17 @@ public:
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	
+	UFUNCTION()
+	void OnRep_Health(float OldHealth);
+
+	UFUNCTION(BlueprintCallable)
+		float GetHealth()const;
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")		//生命改变事件
 		FOnHealthChangedSignhure OnHealthChanged;
+
+	UFUNCTION(BlueprintCallable, Category = "HealthComponent")
+		bool Heal(float HealthAmount);		//恢复血量
 
 };
