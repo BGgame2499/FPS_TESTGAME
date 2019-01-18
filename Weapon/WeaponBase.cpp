@@ -55,7 +55,7 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	this->SetActorRotation(FRotator(-90, 0, 0));
+	//this->SetActorRotation(FRotator(-90, 0, 0));
 
 
 	//设置碰撞参数，Tag为一个字符串用于以后识别，true是TraceParams.bTraceComplex，this是InIgnoreActor    

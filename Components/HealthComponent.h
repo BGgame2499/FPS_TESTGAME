@@ -16,6 +16,9 @@ class FPS_TESTGAME_API UHealthComponent : public UActorComponent
 public:	
 	UHealthComponent();
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsDead;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -34,6 +37,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		float GetHealth()const;
+
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")		//生命改变事件

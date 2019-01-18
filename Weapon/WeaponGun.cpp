@@ -22,7 +22,7 @@ AWeaponGun::AWeaponGun()
 	ShellEjectionName = "ShellEjectionSocket";
 
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
-	//WeaponSkletalMesh->SetSimulatePhysics(true);
+	WeaponSkletalMesh->SetSimulatePhysics(true);
 	WeaponHitSphere->SetupAttachment(WeaponSkletalMesh);
 	SetRootComponent(WeaponSkletalMesh);
 	WeaponSkletalMesh->SetCanEverAffectNavigation(false);
@@ -83,11 +83,11 @@ void AWeaponGun::OnAttack()	//开火
 
 	APlayerCharacterBase * MyOwner = Cast<APlayerCharacterBase>(GetOwner());
 
-	if (MyOwner, IsCurrentBullet())
+	if (MyOwner && IsCurrentBullet())
 	{ 
 		/////////////////////////////////////////////////////////////   得到子弹特效发射位置
-		BulletSpawnRotation = MyOwner->CameraComp->GetComponentRotation();
-		BulletSpawnLocation = (CurrentMuzzleTransform.GetLocation() + BulletSpawnRotation.RotateVector(GunMuzzleOffset));
+		//BulletSpawnRotation = MyOwner->CameraComp->GetComponentRotation();
+		//BulletSpawnLocation = (CurrentMuzzleTransform.GetLocation() + BulletSpawnRotation.RotateVector(GunMuzzleOffset));
 
 		/////////////////////////////////////////////////////////////   子弹射线检测
 		FVector EyeLocation;
@@ -101,6 +101,8 @@ void AWeaponGun::OnAttack()	//开火
 		else
 		{
 			MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+			EyeLocation = WeaponSkletalMesh->GetSocketLocation(CurrentMuzzleName);
+			EyeRotation = WeaponSkletalMesh->GetSocketRotation(CurrentMuzzleName);
 		}
 
 		FVector ShotDirection = EyeRotation.Vector();
@@ -166,9 +168,74 @@ void AWeaponGun::OnAttack()	//开火
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAttackFire", true);
 		}
 	}
-	else
+	else    //如果是无人操作类型武器
 	{
 
+		FVector EyeLocation;
+		FRotator EyeRotation;
+
+		EyeLocation = WeaponSkletalMesh->GetSocketLocation(CurrentMuzzleName);
+		EyeRotation = WeaponSkletalMesh->GetSocketRotation(CurrentMuzzleName);
+		
+
+		FVector ShotDirection = EyeRotation.Vector();
+		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
+
+		FCollisionQueryParams TraceParams;
+		//TraceParams.bTraceAsyncScene = true;
+		//TraceParams.bReturnPhysicalMaterial = false;    //使用复杂Collision判定，逐面判定，更加准确        
+		TraceParams.bTraceComplex = true;    /* FHitResults负责接受结果 */
+		TraceParams.bReturnPhysicalMaterial = true;
+		TraceParams.AddIgnoredActor(this);
+
+		FVector TraceEndPoint = TraceEnd;
+
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
+
+		FHitResult Hit;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, TraceParams))
+		{
+			AActor * HitActor = Hit.GetActor();
+
+			/////////////////////////////////////////////////////////////   子弹碰撞物理材质响应
+
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+			float ActualDemage = AttackHP_Value;
+			if (SurfaceType == SurfaceType2)
+			{
+				ActualDemage *= 4.0;
+			}
+
+
+			if (Hit.GetComponent()->IsSimulatingPhysics()) { Hit.GetComponent()->AddImpulse(ShotDirection * AttackLinearVelocity, NAME_None, true); }//施加力
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDemage, ShotDirection, Hit, this->GetInstigatorController(), this, DamageType);	//施加伤害
+
+
+			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);	//播放击中特效
+
+																/////////////////////////////////////////////////////////////////
+			TraceEndPoint = Hit.ImpactPoint;
+
+		}
+
+
+		//GetWorld()->SpawnActor<AActor>(BulletActorClass, BulletSpawnLocation, EyeRotation);
+
+		PlayWeaponParticle();	//播放各个武器特效
+
+		if (Role == ROLE_Authority)		//记录当前武器击中位置和材质类型
+		{
+			HitScanTrace.TraceTo = TraceEndPoint;
+			HitScanTrace.SurfaceType = SurfaceType;
+		}
+
+		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
+
+		if (DebugWeaponDrawing > 0)
+		{
+			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Blue, false, 2.0f);
+		}
 	}
 }
 

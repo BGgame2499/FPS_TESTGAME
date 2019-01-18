@@ -4,11 +4,16 @@
 #include "Weapon/SpawnWeapon/SpawnWeapon.h"
 #include "TimerManager.h"
 #include "Components/HealthComponent.h"
+#include "FPS_TESTGAMEGameState.h"
+#include "FPS_TESTGAMEPlayerState.h"
 #include "Engine.h"
 
 AFPS_TESTGAMEGameModeBase::AFPS_TESTGAMEGameModeBase()
 {
 	TimeBetweenWave = 5.0f;
+
+	GameStateClass = AFPS_TESTGAMEGameState::StaticClass();
+	PlayerStateClass = AFPS_TESTGAMEPlayerState::StaticClass();
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickInterval = 1.0f;
@@ -49,19 +54,22 @@ FString AFPS_TESTGAMEGameModeBase::InitNewPlayer(APlayerController * NewPlayerCo
 }
 
 
-void AFPS_TESTGAMEGameModeBase::StartPlay()
+void AFPS_TESTGAMEGameModeBase::StartPlay()		//游戏运行时调用
 {
 	Super::StartPlay();
 
 	PrepareForNextWave();
-
+	CheckAnyPlayer();
 }
 void AFPS_TESTGAMEGameModeBase::PrepareForNextWave()
 {
 
 	GetWorldTimerManager().SetTimer(TimeHandle_NextWaveStart, this, &AFPS_TESTGAMEGameModeBase::StartWave, TimeBetweenWave, false);	//延时调用波生成
-}
 
+	SetWaveState(EWaveState::WaitingToStart);
+
+}
+///////////////////////////////////////////////////////////////	//状态检查
 void AFPS_TESTGAMEGameModeBase::CheckWaveState()
 {
 	bool bIsPrepareingForWave = GetWorldTimerManager().IsTimerActive(TimeHandle_NextWaveStart);
@@ -90,6 +98,8 @@ void AFPS_TESTGAMEGameModeBase::CheckWaveState()
 
 	if (!bIsAnyBotAlive)
 	{
+		SetWaveState(EWaveState::WaveComplete);
+
 		PrepareForNextWave();
 	}
 
@@ -120,10 +130,12 @@ void AFPS_TESTGAMEGameModeBase::CheckAnyPlayer()	//检查所有玩家是否存活
 	GameOver();
 
 }
-
+///////////////////////////////////////////////////////////////
 void AFPS_TESTGAMEGameModeBase::GameOver()
 {
 	EndWave();
+
+	SetWaveState(EWaveState::GameOver);
 
 	UE_LOG(LogTemp, Log, TEXT("GameOver!!!"));
 }
@@ -132,10 +144,11 @@ void AFPS_TESTGAMEGameModeBase::StartWave()
 {
 	WaveCount++;
 
-	NrOfBotsToSpawn = 2 * WaveCount;
-
+	NrOfBotsToSpawn = 15 * WaveCount;
 
 	GetWorldTimerManager().SetTimer(TimeHandle_BotSpawner,this,&AFPS_TESTGAMEGameModeBase::SpawnBotTimerElapsed,1.0f ,true , 0.0f);
+
+	SetWaveState(EWaveState::WaveInProgress);
 }
 void AFPS_TESTGAMEGameModeBase::SpawnBotTimerElapsed()
 {
@@ -154,6 +167,27 @@ void AFPS_TESTGAMEGameModeBase::EndWave()
 {
 
 	GetWorldTimerManager().ClearTimer(TimeHandle_BotSpawner);
-	CheckWaveState();
+
+	SetWaveState(EWaveState::WaitingToComplete);
+}
+void AFPS_TESTGAMEGameModeBase::SetWaveState(EWaveState NewState)
+{
+	AFPS_TESTGAMEGameState * GS = GetGameState<AFPS_TESTGAMEGameState>();
+	if (ensureAlways(GS))
+	{
+		GS->SetWaveState(NewState);
+	}
+}
+
+void AFPS_TESTGAMEGameModeBase::RestarDeadPlayers()
+{
+	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+	{
+		APlayerController * PC = it->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			RestartPlayer(PC);
+		}
+	}
 }
 

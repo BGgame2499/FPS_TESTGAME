@@ -1,5 +1,6 @@
 
 #include "HealthComponent.h"
+#include "GameMode/FPS_TESTGAMEGameModeBase.h"
 #include "Net/UnrealNetwork.h"	
 
 
@@ -11,6 +12,7 @@ UHealthComponent::UHealthComponent()
 	DefaultHealth = 100.0f;
 
 	SetIsReplicated(true);
+	bIsDead = false;
 }
 
 
@@ -38,16 +40,29 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Damage <= 0.0f)
+	if (Damage <= 0.0f || bIsDead)
 	{
 		return;
 	}
 
 	Health = FMath::Clamp(Health - Damage, 0.0f, DefaultHealth);
 
+	bIsDead = Health <= 0.0f;
+
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);	//广播事件
 
 	UE_LOG(LogTemp, Log, TEXT("Health Changed : %s"), *FString::SanitizeFloat(Health));
+
+	if (bIsDead)	//如果当前角色已死亡则向GameMode广播消息
+	{
+		AFPS_TESTGAMEGameModeBase * GM = Cast<AFPS_TESTGAMEGameModeBase>(GetWorld()->GetAuthGameMode());
+		if (GM)
+		{
+			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
+		}
+	}
+
+
 }
 
 void UHealthComponent::OnRep_Health(float OldHealth)
