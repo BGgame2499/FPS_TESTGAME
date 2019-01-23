@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PUBG_AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -35,6 +34,7 @@ void UPUBG_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (CurrentPlayerPawn->CurrentHandWeapon)
 		{
 			isWeaponAttackFire = CurrentPlayerPawn->CurrentHandWeapon->isAttackFire;
+			isWeaponReloading = CurrentPlayerPawn->CurrentHandWeapon->isReloading;
 		}
 
 	}

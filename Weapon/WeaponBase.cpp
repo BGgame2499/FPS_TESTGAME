@@ -11,17 +11,18 @@
 AWeaponBase::AWeaponBase()
 {
 	AttackHP_Value = 25.f;
+	AttackHP_Multiple = 2.0f;
 	AttackTimeInterval = 1.5f;
 	PrimaryActorTick.bCanEverTick = true;
 	TrenchName = "NULL";
 	MaxReserveBullet = 120;
 	MaxCurrentBullet = 30;
-	ReserveBullet = MaxReserveBullet;
-	CurrentBullet = MaxCurrentBullet;
 	WeaponTime = 0.f;
 	WeaponHitTime = 1.5f;
-	isHit = false;
+	ReloadingTime = 2.4f;
+	isHit = true;
 	isAttackFire = false;
+	isReloading = false;
 	ThisWeaponSpeciesEnum = WeaponSpeciesEnum::SK_KA74U;	//当前武器的种类
 
 
@@ -55,6 +56,8 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ReserveBullet = MaxReserveBullet;
+	CurrentBullet = MaxCurrentBullet;
 	//this->SetActorRotation(FRotator(-90, 0, 0));
 
 
@@ -80,11 +83,11 @@ void AWeaponBase::SetCurrentMeshCollision(bool bCollision)
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	WeaponTime += DeltaTime;
-	if (WeaponTime >= WeaponHitTime && WeaponTime <= WeaponHitTime + DeltaTime)
-	{
-		isHit = true;
-	}
+	//WeaponTime += DeltaTime;
+	//if (WeaponTime >= WeaponHitTime && WeaponTime <= WeaponHitTime + DeltaTime)
+	//{
+	//	isHit = true;
+	//}
 
 }
 
@@ -192,4 +195,40 @@ bool AWeaponBase::IsCurrentBullet()
 		return true;
 	}
 	return false;
+}
+
+void AWeaponBase::TryReloading()	//尝试延时调用换弹逻辑
+{
+	if (CurrentBullet == MaxCurrentBullet || ReserveBullet <= 0 || isReloading)
+	{
+		return;
+	}
+	isReloading = true;
+	GetWorldTimerManager().SetTimer(TimeHandle_Reloading, this, &AWeaponBase::Reloading, ReloadingTime);
+
+	ReloadingEvent(WeaponHitSphere);	//换弹事件在蓝图中用于播放声音等内容
+}
+
+void AWeaponBase::Reloading()
+{
+	if (ReserveBullet <= 0)
+	{
+		return;
+	}
+
+	int32 A = MaxCurrentBullet - CurrentBullet;
+
+	if (A >= ReserveBullet)
+	{
+		CurrentBullet += ReserveBullet;
+		ReserveBullet = 0;
+	}
+	else
+	{
+		CurrentBullet += A;
+		ReserveBullet -= A;
+	}
+
+	isReloading = false;
+	GetWorldTimerManager().ClearTimer(TimeHandle_Reloading);
 }

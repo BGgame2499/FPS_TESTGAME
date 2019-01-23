@@ -1,4 +1,4 @@
-
+// This code was written by ¿µ×ÓÇï
 #pragma once
 
 #include "CoreMinimal.h"
@@ -200,5 +200,8 @@ public:
 		void HandPressed();
 	UFUNCTION(BlueprintCallable)
 		void ThrowWeapon();
+
+	UFUNCTION(BlueprintCallable)
+		void Reloadiong();
 	
 };

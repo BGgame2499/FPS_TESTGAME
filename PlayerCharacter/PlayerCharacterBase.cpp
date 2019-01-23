@@ -1,4 +1,4 @@
-
+// This code was written by 康子秋
 #include "PlayerCharacterBase.h"
 #include "FPS_TESTGAME.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -23,7 +23,7 @@ APlayerCharacterBase::APlayerCharacterBase()
 	GunTrenchNum = 2;	//默认生成2个武器槽位
 	GunTrenchArray.SetNum(GunTrenchNum);
 	GunTrenchArray[0].SetTrenchName("Weapon_A");
-	//GunTrenchArray[1].SetTrenchName("Weapon_B");
+	GunTrenchArray[1].SetTrenchName("Weapon_B");
 	bDied = false;
 	bAim = false;
 	//CurrentStateEnum = PlayerStateEnum::Idle;	//角色状态枚举
@@ -185,7 +185,9 @@ void APlayerCharacterBase::SetupPlayerInputComponent(class UInputComponent* Play
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this,&APlayerCharacterBase::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &APlayerCharacterBase::Jump);
+
+	PlayerInputComponent->BindAction("Reloading", IE_Pressed, this, &APlayerCharacterBase::Reloadiong);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacterBase::SprintPressed);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacterBase::SprintReleased);
@@ -374,6 +376,14 @@ void APlayerCharacterBase::HandPressed()
 	TakeWeapon(CurrentHandWeaponStateEnum::Hand);
 	
 }
+void APlayerCharacterBase::Reloadiong()
+{
+	if (CurrentHandWeapon)
+	{
+		CurrentHandWeapon->Execute_Fire_Int(CurrentHandWeapon, false, 0.0f);
+		CurrentHandWeapon->TryReloading();
+	}
+}
 
 void APlayerCharacterBase::ThrowWeapon()
 {
@@ -400,6 +410,8 @@ void APlayerCharacterBase::ThrowWeapon()
 	}
 
 }
+
+
 
 void APlayerCharacterBase::TakeWeapon_Implementation(CurrentHandWeaponStateEnum HandWeaponEnum)
 {
@@ -475,9 +487,11 @@ bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 		if (!GunTrenchArray[index].IsWeapon())
 		{
 			Gun->Execute_Fire_Int(Gun, false, 0.0f);
-			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
+			Gun->SetOwner(nullptr);
 			Gun->SetCurrentMeshCollision(false);
-			Gun->SetOwner(this);
+			Gun->WeaponHitSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
+			
 			return true;
 		}
 	}
@@ -492,12 +506,15 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 		CurrentHandWeapon = nullptr;
 	}
 
-	if(GunTrenchArray.IsValidIndex(TrenchID))
-	CurrentHandWeapon = GunTrenchArray[TrenchID].GetWeapon();
+	if (GunTrenchArray.IsValidIndex(TrenchID))
+	{
+		CurrentHandWeapon = GunTrenchArray[TrenchID].GetWeapon();
+	}
 
 	if (CurrentHandWeapon)
 	{
 		CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
+		CurrentHandWeapon->SetOwner(this);
 		return CurrentHandWeapon;
 	}
 	

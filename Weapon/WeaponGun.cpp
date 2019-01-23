@@ -73,17 +73,22 @@ void AWeaponGun::Tick(float DeltaTime)
 
 void AWeaponGun::OnAttack()	//开火
 {
+	if (!IsCurrentBullet() || isReloading)
+	{
+		OffAttack();
+		return;
+	}
+
 	if (Role < ROLE_Authority)
 	{
 		ServerOnAttack();
 	}
 
-
 	CurrentMuzzleTransform = WeaponSkletalMesh->GetSocketTransform(CurrentMuzzleName);
 
 	APlayerCharacterBase * MyOwner = Cast<APlayerCharacterBase>(GetOwner());
 
-	if (MyOwner && IsCurrentBullet())
+	if (MyOwner)
 	{ 
 		/////////////////////////////////////////////////////////////   得到子弹特效发射位置
 		//BulletSpawnRotation = MyOwner->CameraComp->GetComponentRotation();
@@ -132,7 +137,7 @@ void AWeaponGun::OnAttack()	//开火
 			float ActualDemage = AttackHP_Value;
 			if (SurfaceType == SurfaceType2)
 			{
-				ActualDemage *= 4.0;
+				ActualDemage *= AttackHP_Multiple;
 			}
 
 
@@ -159,6 +164,7 @@ void AWeaponGun::OnAttack()	//开火
 		}
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
+		CurrentBullet--;
 
 		MyOwner->RecoilRifleFire(RandomRecoilPith, RandomRecoilYaw);	//设置后坐力
 
@@ -231,12 +237,14 @@ void AWeaponGun::OnAttack()	//开火
 		}
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
+		CurrentBullet--;
 
 		if (DebugWeaponDrawing > 0)
 		{
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Blue, false, 2.0f);
 		}
 	}
+
 }
 
 void AWeaponGun::ServerOnAttack_Implementation()
@@ -252,7 +260,7 @@ void AWeaponGun::OffAttack()	//停火
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_WeaponFireTimeHand);
 
-
+	isAttackFire = false;
 	if (DebugWeaponDrawing > 0)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OffAttackFire", true);
@@ -321,8 +329,10 @@ UParticleSystem * AWeaponGun::GetImpactParticle(EPhysicalSurface  SurfaceType)	/
 		Index = 2;
 		break;
 	case SurfaceType3:
+		Index = 3;
 		break;
 	case SurfaceType4:
+		Index = 4;
 		break;
 	case SurfaceType5:
 		break;
@@ -462,18 +472,18 @@ void AWeaponGun::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactP
 	{
 		FVector MuzzleLocation = WeaponSkletalMesh->GetSocketLocation(CurrentMuzzleName);
 
-		FVector ShotDirection = ImpactPoint - MuzzleLocation;
-		ShotDirection.Normalize();
-		//FRotator ParticleRotator = FRotator(ShotDirection.Rotation().Yaw, ShotDirection.Rotation().Pitch, ShotDirection.Rotation().Roll);
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle,ImpactPoint, ShotDirection.Rotation());		//创建击中特效
-
+		FVector ShotDirection = MuzzleLocation - ImpactPoint;
+		//ShotDirection = ShotDirection * -1;
+		//FRotator ParticleRotator = FRotator(ShotDirection.Rotation().Yaw - 90, ShotDirection.Rotation().Pitch - 90, ShotDirection.Rotation().Roll);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle,ImpactPoint, ShotDirection.Rotation(),FVector(2,2,2));		//创建击中特效
+		
 		UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(DefaultImpactDecal, this);	//得到印花材质并创建动态材质
 		if (DynMaterial)
 		{
 			int32 RandomNum = FMath::RandRange(1, 4);
-			DynMaterial->SetScalarParameterValue("Frame", RandomNum);	//设置材质变量
+			DynMaterial->SetScalarParameterValue("Frame", RandomNum);	//设置材质变量_
 			FVector DecalSize = FVector(5, 5, 5) * FMath::FRandRange(0.75, 1.9);
-			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), DynMaterial, DecalSize, ImpactPoint, ShotDirection.Rotation());	//创建印花
+			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), DynMaterial, DecalSize, ImpactPoint, ShotDirection.Rotation(),35.0f);	//创建印花
 		}
 	}
 }

@@ -54,7 +54,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
 		bool isWeaponAttackFire; 
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PUBG")
+		bool isWeaponReloading;
 
 public:
 	UFUNCTION(BlueprintCallable)

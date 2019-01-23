@@ -43,24 +43,34 @@ public:
 		int32 MaxCurrentBullet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		float ReloadingTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		WeaponSpeciesEnum ThisWeaponSpeciesEnum;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		bool isAttackFire;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		bool isReloading;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		float WeaponHitTime;
-private:
+protected:
 	int32 ReserveBullet;
 	int32 CurrentBullet;
 
 	float WeaponTime;
 	bool isHit;
+
+	FTimerHandle TimeHandle_Reloading;
 protected:
 	virtual void BeginPlay() override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
 		float AttackHP_Value;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeponeBasicValue")
+		float AttackHP_Multiple;
 
 	UPROPERTY(EditAnywhere, Category = "WeponeBasicValue")
 		float AttackTimeInterval;
@@ -102,4 +112,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		virtual void PlayWeaponParticle() {};
+
+	UFUNCTION(BlueprintCallable)
+		virtual void TryReloading();
+	UFUNCTION(BlueprintImplementableEvent)
+		void ReloadingEvent(USphereComponent * WeaponComponent);
+	UFUNCTION(BlueprintCallable)
+		 void Reloading();
 };
