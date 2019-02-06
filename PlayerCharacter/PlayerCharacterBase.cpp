@@ -238,7 +238,7 @@ void APlayerCharacterBase::UpdateControllerRotation(float Value)
 
 }
 
-void APlayerCharacterBase::UpdateSpringLength(float Value)
+void APlayerCharacterBase::UpdateSpringLength(float Value)	//Ãé×¼±¶Êý
 {
 	float TargetFOV = bAim ? ZoomedFOV : DefaultFOV;
 	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, Value, ZoomInterSpeed);
@@ -335,7 +335,10 @@ void APlayerCharacterBase::FreelookReleased()
 }
 void APlayerCharacterBase::AimPressed()
 {
-
+	if (CurrentHandWeapon)
+	{
+		ZoomedFOV = CurrentHandWeapon->ZoomedFOV;
+	}
 	AimSpringTimeLine.PlayFromStart();
 	bAim = true;
 
@@ -347,6 +350,7 @@ void APlayerCharacterBase::AimPressed()
 
 void APlayerCharacterBase::AimReleased()
 {
+	ZoomedFOV = 60.0f;
 
 	AimSpringTimeLine.PlayFromStart();	//µ¹Ðð²¥·ÅAimSpringTimeLine
 
@@ -472,6 +476,7 @@ void APlayerCharacterBase::UpdateWeapon()
 		break;
 	}
 	CurrentWeaponAnimStateEnum = PlayerWeaponAnimStateEnum::GunComplete;
+
 }
 
 
@@ -491,7 +496,11 @@ bool APlayerCharacterBase::AddWeapon_Int_Implementation(AWeaponBase * Gun)
 			Gun->SetCurrentMeshCollision(false);
 			Gun->WeaponHitSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			GunTrenchArray[index].SetWeapon(GetMesh(), Gun);
-			
+
+			if (ChangeWeaponSound)	//²¥·ÅÎäÆ÷¸ü»»ÒôÐ§
+			{
+				UGameplayStatics::SpawnSoundAttached(ChangeWeaponSound, GetMesh());
+			}
 			return true;
 		}
 	}
@@ -502,8 +511,10 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 {
 	if (CurrentHandWeapon)
 	{
-		AddWeapon_Int_Implementation(CurrentHandWeapon);
-		CurrentHandWeapon = nullptr;
+		if (!AddWeapon_Int_Implementation(CurrentHandWeapon))
+		{
+			ThrowWeapon();
+		}
 	}
 
 	if (GunTrenchArray.IsValidIndex(TrenchID))
@@ -515,6 +526,7 @@ AWeaponBase * APlayerCharacterBase::GetGunWeapon(int32 TrenchID)
 	{
 		CurrentHandWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), Wepone_Hand_name);
 		CurrentHandWeapon->SetOwner(this);
+		AimReleased();
 		return CurrentHandWeapon;
 	}
 	

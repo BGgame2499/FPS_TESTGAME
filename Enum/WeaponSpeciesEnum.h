@@ -12,6 +12,9 @@ enum class WeaponSpeciesEnum : uint8
 	SK_S96,
 	SK_KA74U,
 	SK_SMG45,
+	SK_PISTOL_1,
+	SK_AWP,
+	SK_BOMBLAUNC,
 	FIST
 	
 };

@@ -6,11 +6,14 @@
 #include "Components/HealthComponent.h"
 #include "FPS_TESTGAMEGameState.h"
 #include "FPS_TESTGAMEPlayerState.h"
+#include "Ai/Zombie_Base.h"
 #include "Engine.h"
 
 AFPS_TESTGAMEGameModeBase::AFPS_TESTGAMEGameModeBase()
 {
 	TimeBetweenWave = 5.0f;
+	WaveCount = 5;
+	ZombieCount = 2;
 
 	GameStateClass = AFPS_TESTGAMEGameState::StaticClass();
 	PlayerStateClass = AFPS_TESTGAMEPlayerState::StaticClass();
@@ -30,7 +33,8 @@ void AFPS_TESTGAMEGameModeBase::Tick(float DeltaSeconds)	//每秒更新
 {
 	Super::Tick(DeltaSeconds);
 
-	CheckWaveState();
+	CheckWaveState(); 
+	CheckAnyPlayer();
 }
 
 void AFPS_TESTGAMEGameModeBase::CompleteMission(APawn * InstigatorPawn)
@@ -48,7 +52,7 @@ FString AFPS_TESTGAMEGameModeBase::InitNewPlayer(APlayerController * NewPlayerCo
 {
 	FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, "NewPlayerJoin",true);
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, "NewPlayerJoin",true);
 
 	return Result;
 }
@@ -59,7 +63,6 @@ void AFPS_TESTGAMEGameModeBase::StartPlay()		//游戏运行时调用
 	Super::StartPlay();
 
 	PrepareForNextWave();
-	CheckAnyPlayer();
 }
 void AFPS_TESTGAMEGameModeBase::PrepareForNextWave()
 {
@@ -88,19 +91,29 @@ void AFPS_TESTGAMEGameModeBase::CheckWaveState()
 		{
 			continue;
 		}
-		UHealthComponent * HealthComp = Cast<UHealthComponent>(TestPawn->GetComponentByClass(UHealthComponent::StaticClass()));
-		if (HealthComp && HealthComp->GetHealth() > 0.0f)
+		AZombie_Base * TestZombie = Cast<AZombie_Base>(it->Get());
+		if (TestZombie)
 		{
-			bIsAnyBotAlive = true;
-			break;
+			UHealthComponent * HealthComp = Cast<UHealthComponent>(TestZombie->GetComponentByClass(UHealthComponent::StaticClass()));
+			if (HealthComp && HealthComp->GetHealth() > 0.0f)
+			{
+				bIsAnyBotAlive = true;
+				break;
+			}
 		}
 	}
 
-	if (!bIsAnyBotAlive)
+	if (!bIsAnyBotAlive )
 	{
-		SetWaveState(EWaveState::WaveComplete);
-
-		PrepareForNextWave();
+		if (WaveCount == 0)		//如果坚持完所有波则胜利
+		{
+			SetWaveState(EWaveState::GameWin);
+		}
+		else
+		{
+			SetWaveState(EWaveState::WaveComplete);
+			PrepareForNextWave();
+		}
 	}
 
 }
@@ -135,16 +148,17 @@ void AFPS_TESTGAMEGameModeBase::GameOver()
 {
 	EndWave();
 
-	SetWaveState(EWaveState::GameOver);
+	SetWaveState(EWaveState::GameLose);
 
 	UE_LOG(LogTemp, Log, TEXT("GameOver!!!"));
 }
 
 void AFPS_TESTGAMEGameModeBase::StartWave()
 {
-	WaveCount++;
+	WaveCount--;
+	//ZombieCount++;
 
-	NrOfBotsToSpawn = 15 * WaveCount;
+	NrOfBotsToSpawn = ZombieCount;
 
 	GetWorldTimerManager().SetTimer(TimeHandle_BotSpawner,this,&AFPS_TESTGAMEGameModeBase::SpawnBotTimerElapsed,1.0f ,true , 0.0f);
 
@@ -158,6 +172,7 @@ void AFPS_TESTGAMEGameModeBase::SpawnBotTimerElapsed()
 
 	if (NrOfBotsToSpawn <= 0)
 	{
+		SetWaveState(EWaveState::WaitingToComplete);
 		EndWave();
 	}
 
@@ -168,7 +183,6 @@ void AFPS_TESTGAMEGameModeBase::EndWave()
 
 	GetWorldTimerManager().ClearTimer(TimeHandle_BotSpawner);
 
-	SetWaveState(EWaveState::WaitingToComplete);
 }
 void AFPS_TESTGAMEGameModeBase::SetWaveState(EWaveState NewState)
 {

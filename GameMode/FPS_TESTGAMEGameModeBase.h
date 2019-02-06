@@ -32,8 +32,10 @@ protected:
 	FTimerHandle TimeHandle_NextWaveStart;
 
 	int32 NrOfBotsToSpawn;	//当前波要生成的敌人
-
-	int32 WaveCount;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Wave")
+		int32 WaveCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave")
+		int32 ZombieCount;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "GameMode")
 	float TimeBetweenWave;
@@ -57,6 +59,7 @@ protected:
 
 	void CheckAnyPlayer();
 
+	UFUNCTION(BlueprintCallable)
 	void GameOver();
 
 	void SetWaveState(EWaveState NewState);
@@ -67,8 +70,10 @@ protected:
 
 public:
 
+
 	virtual void StartPlay()override;
 
 	UPROPERTY(BlueprintAssignable,Category = "GameMode")
 	FOnActorKilled OnActorKilled;
+
 };

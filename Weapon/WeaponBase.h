@@ -37,6 +37,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TrenchName")
 		FName TrenchName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+		float ZoomedFOV;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet")
 		int32 MaxReserveBullet;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet")
@@ -81,6 +84,7 @@ public:
 
 	virtual bool Fire_Int_Implementation(bool isFire,float Time);
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetCurrentMeshCollision(bool bCollision);
 
 	UFUNCTION()
@@ -117,6 +121,8 @@ public:
 		virtual void TryReloading();
 	UFUNCTION(BlueprintImplementableEvent)
 		void ReloadingEvent(USphereComponent * WeaponComponent);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAttackEvent(FVector EyeLocation,FRotator EyeRotation);
 	UFUNCTION(BlueprintCallable)
 		 void Reloading();
 };

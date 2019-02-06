@@ -22,7 +22,6 @@ AWeaponGun::AWeaponGun()
 	ShellEjectionName = "ShellEjectionSocket";
 
 	WeaponSkletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkletalMesh"));
-	WeaponSkletalMesh->SetSimulatePhysics(true);
 	WeaponHitSphere->SetupAttachment(WeaponSkletalMesh);
 	SetRootComponent(WeaponSkletalMesh);
 	WeaponSkletalMesh->SetCanEverAffectNavigation(false);
@@ -167,6 +166,7 @@ void AWeaponGun::OnAttack()	//开火
 		CurrentBullet--;
 
 		MyOwner->RecoilRifleFire(RandomRecoilPith, RandomRecoilYaw);	//设置后坐力
+		OnAttackEvent(EyeLocation,EyeRotation);	//调用蓝图事件
 
 		if (DebugWeaponDrawing > 0)
 		{
@@ -238,6 +238,8 @@ void AWeaponGun::OnAttack()	//开火
 
 		LastFireTime = GetWorld()->TimeSeconds;	 //记录最后一次开火时间
 		CurrentBullet--;
+
+		OnAttackEvent(EyeLocation,EyeRotation);	//调用蓝图事件
 
 		if (DebugWeaponDrawing > 0)
 		{
@@ -482,7 +484,8 @@ void AWeaponGun::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactP
 		{
 			int32 RandomNum = FMath::RandRange(1, 4);
 			DynMaterial->SetScalarParameterValue("Frame", RandomNum);	//设置材质变量_
-			FVector DecalSize = FVector(5, 5, 5) * FMath::FRandRange(0.75, 1.9);
+			FVector DecalSize = FVector(15, 5, 5) * FMath::FRandRange(0.75, 1.9);
+			//DynMaterial->
 			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), DynMaterial, DecalSize, ImpactPoint, ShotDirection.Rotation(),35.0f);	//创建印花
 		}
 	}

@@ -17,10 +17,11 @@ AWeaponBase::AWeaponBase()
 	TrenchName = "NULL";
 	MaxReserveBullet = 120;
 	MaxCurrentBullet = 30;
-	WeaponTime = 0.f;
+	WeaponTime = 2.0f;
 	WeaponHitTime = 1.5f;
 	ReloadingTime = 2.4f;
-	isHit = true;
+	ZoomedFOV = 60.0f;
+	isHit = false;
 	isAttackFire = false;
 	isReloading = false;
 	ThisWeaponSpeciesEnum = WeaponSpeciesEnum::SK_KA74U;	//当前武器的种类
@@ -73,7 +74,7 @@ void AWeaponBase::BeginPlay()
 	{
 		//SetActorLocation(FVector(Hit.Location.X, Hit.Location.Y, Hit.Location.Z+2));
 	}
-	
+	SetCurrentMeshCollision(true);
 }
 
 void AWeaponBase::SetCurrentMeshCollision(bool bCollision)
@@ -83,11 +84,11 @@ void AWeaponBase::SetCurrentMeshCollision(bool bCollision)
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//WeaponTime += DeltaTime;
-	//if (WeaponTime >= WeaponHitTime && WeaponTime <= WeaponHitTime + DeltaTime)
-	//{
-	//	isHit = true;
-	//}
+	WeaponTime += DeltaTime;
+	if (WeaponTime >= WeaponHitTime && WeaponTime <= WeaponHitTime + DeltaTime)
+	{
+		isHit = true;
+	}
 
 }
 
@@ -145,12 +146,16 @@ bool AWeaponBase::SetWeaponBullet(int32 Currentbullet, int32 Reservebullet)
 
 void AWeaponBase::AddWeaponBullet(int32 Reservebullet)
 {
-	if (Reservebullet > 0)
+	if (Reservebullet >= 0)
 	{
 		int32 addNum = Reservebullet + ReserveBullet;
 		if (addNum > MaxReserveBullet)
 		{
 			ReserveBullet = MaxReserveBullet;
+		}
+		else
+		{
+			ReserveBullet = addNum;
 		}
 	}
 }
@@ -161,6 +166,7 @@ bool AWeaponBase::Reload()
 
 void AWeaponBase::OnAttack()
 {
+	OnAttackEvent(FVector(0,0,0),FRotator(0,0,0));
 }
 
 void AWeaponBase::OffAttack()

@@ -74,6 +74,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerWeapone")
 		class AWeaponBase * CurrentHandWeapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerWeapone")
+		class USoundCue * ChangeWeaponSound;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "PlayerState")
 		PlayerWeaponAnimStateEnum CurrentWeaponAnimStateEnum;
 

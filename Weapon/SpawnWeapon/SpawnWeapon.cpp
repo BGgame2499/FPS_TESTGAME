@@ -9,7 +9,6 @@ ASpawnWeapon::ASpawnWeapon()
 }
 AWeaponBase * ASpawnWeapon::SpawnWeaponClass(TSubclassOf<AWeaponBase > WeaponClass, FTransform WeaponLocation)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, "AAAAA", true);
 	AWeaponBase * NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, WeaponLocation);
 	if (NewWeapon)
 	{
